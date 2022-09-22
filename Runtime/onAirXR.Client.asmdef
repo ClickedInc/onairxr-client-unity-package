@@ -1,0 +1,12 @@
+{
+    "name": "onAirXR.Client",
+    "references": [],
+    "optionalUnityReference": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReference": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

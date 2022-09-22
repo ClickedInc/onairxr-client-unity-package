@@ -1,0 +1,12 @@
+{
+    "name": "onAirXR.Client.Editor",
+    "references": [],
+    "optionalUnityReference": [],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReference": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

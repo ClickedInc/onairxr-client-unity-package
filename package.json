@@ -1,0 +1,18 @@
+{
+    "name": "com.onairxr.client",
+    "version": "0.1.0",
+    "displayName": "onAirVR",
+    "description": "none",
+    "unity": "2020.1",
+    "author": {
+        "name": "Clicked, Inc.",
+        "email": "contact@clicked.co.kr",
+        "url": "https://www.clicked.co.kr"
+    },
+    "keywords": [
+        "vr",
+        "xr",
+        "reality"
+    ],
+    "dependencies": {}
+}

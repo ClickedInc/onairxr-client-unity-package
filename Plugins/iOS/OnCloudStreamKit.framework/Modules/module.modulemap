@@ -1,0 +1,6 @@
+framework module OnCloudStreamKit {
+  umbrella header "OnCloudStreamKit.h"
+
+  export *
+  module * { export * }
+}

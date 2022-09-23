@@ -1,7 +1,7 @@
 {
     "name": "com.onairxr.client",
     "version": "0.1.0",
-    "displayName": "onAirVR",
+    "displayName": "onAirXR Client",
     "description": "none",
     "unity": "2020.1",
     "author": {
@@ -14,5 +14,10 @@
         "xr",
         "reality"
     ],
-    "dependencies": {}
+    "dependencies": {},
+    "samples": [{
+        "displayName": "Multicast",
+        "description": "none",
+        "path": "Samples/Multicast"
+    }]
 }

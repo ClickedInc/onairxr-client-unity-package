@@ -427,7 +427,7 @@ namespace onAirXR.Client {
         private static extern void ocs_InitPlatform();
 
         [DllImport(Name)]
-        private static extern int ocs_Init(int audioOutputSampleRate, bool hasInput);
+        private static extern int ocs_Init(int audioOutputSampleRate, bool hasInput, bool openglRenderTextureCoord);
 
         [DllImport(Name)]
         private static extern void ocs_Cleanup();
@@ -608,8 +608,8 @@ namespace onAirXR.Client {
         }
 
 #if !UNITY_EDITOR_OSX
-        public static int Configure(int audioOutputSampleRate, bool hasInput) {
-            return ocs_Init(audioOutputSampleRate, hasInput);
+        public static int Configure(int audioOutputSampleRate, bool hasInput, bool openglRenderTextureCoord = true) {
+            return ocs_Init(audioOutputSampleRate, hasInput, openglRenderTextureCoord);
         }
 
         public static void Cleanup() {

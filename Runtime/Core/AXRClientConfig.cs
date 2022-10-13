@@ -29,28 +29,12 @@ namespace onAirXR.Client {
             public int height;
         }
 
-        [Serializable]
-        public struct Profiler {
-            public int flags;
-            public string tag;
-
-            public string filename {
-                get {
-                    if (string.IsNullOrEmpty(tag)) { return ""; }
-
-                    return Path.Combine(Application.persistentDataPath,
-                                        string.Format("{0}_{1}.frames", tag, DateTime.Now.ToString("yyyyMMddHHmmss")));
-                }
-            }
-        }
-
         public string address;
         public int port;
         public string userID;
         public VideoBitrate videoBitrate;
         public VideoResolution videoResolution;
         public float videoFramerate;
-        public Profiler profiler;
     }
 
     #pragma warning restore 0649

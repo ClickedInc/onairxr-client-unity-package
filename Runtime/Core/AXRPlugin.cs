@@ -466,6 +466,9 @@ namespace onAirXR.Client {
         private static extern void ocs_RemoveFirstMessageFromQueue();
 
         [DllImport(Name)]
+        private static extern void ocs_EnableProfiler(bool enable, string dataFilename);
+
+        [DllImport(Name)]
         private static extern void ocs_EnableNetworkTimeWarp(bool enable);
 
         [DllImport(Name)]
@@ -667,6 +670,10 @@ namespace onAirXR.Client {
 
         public static void RemoveFirstMessageFromQueue() {
             ocs_RemoveFirstMessageFromQueue();
+        }
+
+        public static void EnableProfiler(bool enable, string dataFilename = null) {
+            ocs_EnableProfiler(enable, dataFilename);
         }
 
         public static void EnableNetworkTimeWarp(bool enable) {

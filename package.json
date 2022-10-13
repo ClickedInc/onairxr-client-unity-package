@@ -1,8 +1,8 @@
 {
     "name": "com.onairxr.client",
-    "version": "0.1.0",
+    "version": "3.0.0",
     "displayName": "onAirXR Client",
-    "description": "none",
+    "description": "",
     "unity": "2020.1",
     "author": {
         "name": "Clicked, Inc.",
@@ -16,8 +16,12 @@
     ],
     "dependencies": {},
     "samples": [{
-        "displayName": "Multicast",
-        "description": "none",
-        "path": "Samples/Multicast"
+        "displayName": "onAirVR",
+        "description": "",
+        "path": "Samples~/onAirVR"
+    }, {
+        "displayName": "Multicast Sample",
+        "description": "",
+        "path": "Samples~/Multicast"
     }]
 }

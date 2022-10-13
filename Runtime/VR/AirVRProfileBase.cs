@@ -28,18 +28,6 @@ namespace onAirXR.Client {
             Best
         }
 
-        [Serializable]
-        public struct ProfilerSettings {
-            public enum Flag : int {
-                Frame = 0x01,
-                Report = 0x02,
-                Advanced = 0x04
-            }
-
-            public int Flags;
-            public string Filename;
-        }
-
         public AirVRProfileBase(VideoBitrate bitrate) {
             videoFrameRate = defaultVideoFrameRate;
 
@@ -62,11 +50,13 @@ namespace onAirXR.Client {
                 default:
                     break;
             }
+
+            TempPath = Application.persistentDataPath;
         }
 
 #pragma warning disable CS0414
         [SerializeField] private string UserID;
-        [SerializeField] private ProfilerSettings Profiler;
+        [SerializeField] private string TempPath;
         [SerializeField] private string[] SupportedVideoCodecs;
         [SerializeField] private string[] SupportedAudioCodecs;
         [SerializeField] private int VideoWidth;
@@ -211,15 +201,6 @@ namespace onAirXR.Client {
             }
             set {
                 VideoMaxBitrate = value;
-            }
-        }
-
-        public ProfilerSettings profiler {
-            get {
-                return Profiler;
-            }
-            set {
-                Profiler = value;
             }
         }
 

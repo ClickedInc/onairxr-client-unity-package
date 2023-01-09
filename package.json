@@ -20,6 +20,11 @@
         "description": "",
         "path": "Samples~/onAirVR"
     }, {
+        "displayName": "onAirView",
+        "description": "",
+        "path": "Samples~/onAirView"
+    },
+    {
         "displayName": "Multicast Sample",
         "description": "",
         "path": "Samples~/Multicast"

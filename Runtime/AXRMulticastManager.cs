@@ -29,56 +29,25 @@ namespace onAirXR.Client {
 #if UNITY_IOS
     private const string LibName = "__Internal";
 #else
-        private const string LibName = "ocs";
+        private const string LibName = "axr";
 #endif
 
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastEnumerateIPv6Interfaces(ref StringBuffer result);
-
-        [DllImport(LibName)]
-        private static extern int ocs_MulticastStartup(string address, int port, string netaddr);
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastShutdown();
-
-        [DllImport(LibName)]
-        private static extern bool ocs_MulticastCheckMessageQueue(out ulong source, out IntPtr data, out int length);
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastRemoveFirstMessageFromQueue();
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastJoin();
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastLeave();
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastSetSubgroup(byte subgroup);
-
-        [DllImport(LibName)]
-        private static extern long ocs_MulticastBeginPendInput();
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastPendInputByteStream(byte device, byte control, byte value);
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastPendInputPose(byte device, byte control, AXRVector3D position, AXRVector4D rotation);
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastSendPendingInputs(long timestamp);
-
-        [DllImport(LibName)]
-        private static extern long ocs_MulticastGetInputRecvTimestamp(string member);
-
-        [DllImport(LibName)]
-        private static extern bool ocs_MulticastGetInputByteStream(string member, byte device, byte control, ref byte value);
-
-        [DllImport(LibName)]
-        private static extern bool ocs_MulticastGetInputPose(string member, byte device, byte control, ref AXRVector3D position, ref AXRVector4D rotation);
-
-        [DllImport(LibName)]
-        private static extern void ocs_MulticastUpdate();
+        [DllImport(LibName)] private static extern void axr_MulticastEnumerateIPv6Interfaces(ref StringBuffer result);
+        [DllImport(LibName)] private static extern int axr_MulticastStartup(string address, int port, string netaddr);
+        [DllImport(LibName)] private static extern void axr_MulticastShutdown();
+        [DllImport(LibName)] private static extern bool axr_MulticastCheckMessageQueue(out ulong source, out IntPtr data, out int length);
+        [DllImport(LibName)] private static extern void axr_MulticastRemoveFirstMessageFromQueue();
+        [DllImport(LibName)] private static extern void axr_MulticastJoin();
+        [DllImport(LibName)] private static extern void axr_MulticastLeave();
+        [DllImport(LibName)] private static extern void axr_MulticastSetSubgroup(byte subgroup);
+        [DllImport(LibName)] private static extern long axr_MulticastBeginPendInput();
+        [DllImport(LibName)] private static extern void axr_MulticastPendInputByteStream(byte device, byte control, byte value);
+        [DllImport(LibName)] private static extern void axr_MulticastPendInputPose(byte device, byte control, AXRVector3D position, AXRVector4D rotation);
+        [DllImport(LibName)] private static extern void axr_MulticastSendPendingInputs(long timestamp);
+        [DllImport(LibName)] private static extern long axr_MulticastGetInputRecvTimestamp(string member);
+        [DllImport(LibName)] private static extern bool axr_MulticastGetInputByteStream(string member, byte device, byte control, ref byte value);
+        [DllImport(LibName)] private static extern bool axr_MulticastGetInputPose(string member, byte device, byte control, ref AXRVector3D position, ref AXRVector4D rotation);
+        [DllImport(LibName)] private static extern void axr_MulticastUpdate();
 
         public static void LoadOnce(string address, int port, string hint = null, bool leaveOnStartup = false) {
             if (_instance != null || string.IsNullOrEmpty(address)) { return; }
@@ -129,7 +98,7 @@ namespace onAirXR.Client {
             builder.Append('*', builder.Capacity - 8);
 
             var strbuf = new StringBuffer(builder);
-            ocs_MulticastEnumerateIPv6Interfaces(ref strbuf);
+            axr_MulticastEnumerateIPv6Interfaces(ref strbuf);
 
             var interfaces = JsonUtility.FromJson<IPv6Interfaces>("{\"interfaces\":" + strbuf.buffer + "}");
             foreach (var inf in interfaces.interfaces) {
@@ -153,13 +122,13 @@ namespace onAirXR.Client {
         public long GetInputRecvTimestamp(string member) {
             if (_state == State.Uninitialized) { return -1; }
 
-            return ocs_MulticastGetInputRecvTimestamp(member);
+            return axr_MulticastGetInputRecvTimestamp(member);
         }
 
         public bool GetInputByteStream(string member, byte device, byte control, ref byte value) {
             if (_state == State.Uninitialized) { return false; }
 
-            return ocs_MulticastGetInputByteStream(member, device, control, ref value);
+            return axr_MulticastGetInputByteStream(member, device, control, ref value);
         }
 
         public bool GetInputPose(string member, byte device, byte control, ref Vector3 position, ref Quaternion rotation) {
@@ -168,7 +137,7 @@ namespace onAirXR.Client {
             var pos = new AXRVector3D();
             var rot = new AXRVector4D();
 
-            if (ocs_MulticastGetInputPose(member, device, control, ref pos, ref rot) == false) { return false; }
+            if (axr_MulticastGetInputPose(member, device, control, ref pos, ref rot) == false) { return false; }
 
             position = pos.toVector3();
             rotation = rot.toQuaternion();
@@ -178,19 +147,19 @@ namespace onAirXR.Client {
         public void PendInputByteStream(byte device, byte control, byte value) {
             if (_state == State.Uninitialized) { return; }
 
-            ocs_MulticastPendInputByteStream(device, control, value);
+            axr_MulticastPendInputByteStream(device, control, value);
         }
 
         public void PendInputPose(byte device, byte control, Vector3 position, Quaternion rotation) {
             if (_state == State.Uninitialized) { return; }
 
-            ocs_MulticastPendInputPose(device, control, new AXRVector3D(position), new AXRVector4D(rotation));
+            axr_MulticastPendInputPose(device, control, new AXRVector3D(position), new AXRVector4D(rotation));
         }
 
         private void Start() {
             acquireMulticastLock();
 
-            var ret = (ErrorCode)ocs_MulticastStartup(_address, _port, _netaddr);
+            var ret = (ErrorCode)axr_MulticastStartup(_address, _port, _netaddr);
             if (ret != ErrorCode.NoError) {
                 Debug.LogWarningFormat("[WARNING] failed to startup OCSMulticastManager : {0}", ret);
                 return;
@@ -207,7 +176,7 @@ namespace onAirXR.Client {
 
         private void Update() {
             if (_state != State.Uninitialized) {
-                ocs_MulticastUpdate();
+                axr_MulticastUpdate();
                 dispatchMessage();
             }
 
@@ -217,16 +186,16 @@ namespace onAirXR.Client {
         private void LateUpdate() {
             if (_delegate == null || _state != State.Joined) { return; }
 
-            var timestamp = ocs_MulticastBeginPendInput();
+            var timestamp = axr_MulticastBeginPendInput();
             if (_delegate.PendInputsPerFrame(this)) {
-                ocs_MulticastSendPendingInputs(timestamp);
+                axr_MulticastSendPendingInputs(timestamp);
             }
         }
 
         private void OnDestroy() {
             if (_state == State.Uninitialized) { return; }
 
-            ocs_MulticastShutdown();
+            axr_MulticastShutdown();
 
             releaseMulticastLock();
         }
@@ -263,14 +232,14 @@ namespace onAirXR.Client {
         private void join() {
             if (_state != State.Ready) { return; }
 
-            ocs_MulticastJoin();
+            axr_MulticastJoin();
             _state = State.Joined;
         }
 
         private void leave() {
             if (_state != State.Joined) { return; }
 
-            ocs_MulticastLeave();
+            axr_MulticastLeave();
 
             foreach (var member in _members.Keys) {
                 _delegate?.MemberLeft(this, member);
@@ -283,17 +252,13 @@ namespace onAirXR.Client {
         private void setSubgroup(byte subgroup) {
             if (_state == State.Uninitialized) { return; }
 
-            ocs_MulticastSetSubgroup(subgroup);
+            axr_MulticastSetSubgroup(subgroup);
         }
 
         private void dispatchMessage() {
-            ulong source = 0;
-            IntPtr data = default;
-            int length = 0;
-
-            while (ocs_MulticastCheckMessageQueue(out source, out data, out length)) {
+            while (axr_MulticastCheckMessageQueue(out ulong source, out IntPtr data, out int length)) {
                 Marshal.Copy(data, _msgbuf, 0, length);
-                ocs_MulticastRemoveFirstMessageFromQueue();
+                axr_MulticastRemoveFirstMessageFromQueue();
 
                 var message = JsonUtility.FromJson<Message>(Encoding.UTF8.GetString(_msgbuf, 0, length));
                 Assert.IsNotNull(message.Type);

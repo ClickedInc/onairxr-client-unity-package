@@ -106,7 +106,7 @@ namespace onAirXR.Client {
             if (Delegate == null) {
                 throw new UnityException("[ERROR] Must set AirVRClient.Delegate.");
             }
-            int result = AXRClientPlugin.Configure(AudioSettings.outputSampleRate, _profile.hasInput);
+            int result = AXRClientPlugin.Configure(AudioSettings.outputSampleRate, _profile.hasInput, true);
             if (result < 0 && result != -4) {
                 Delegate.AirVRClientFailed("failed to init AirVRClient : " + result);
             }

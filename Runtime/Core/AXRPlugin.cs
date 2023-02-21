@@ -278,7 +278,7 @@ namespace onAirXR.Client {
 #else
 
         public static void Load() {}
-        public static int Configure(int audioOutputSampleRate, bool hasInput) { return -1; }
+        public static int Configure(int audioOutputSampleRate, bool hasInput, bool openglRenderTextureCoord) { return -1; }
         public static void Cleanup() { }
         public static void EnableCopyrightCheck(bool enable) { }
         public static void SetProfile(string profile) { }

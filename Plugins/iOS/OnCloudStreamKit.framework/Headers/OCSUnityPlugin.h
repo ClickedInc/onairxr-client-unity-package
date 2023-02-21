@@ -1,7 +1,7 @@
 //  Copyright © 2020 Clicked Inc. All rights reserved.
 
 #import <Foundation/Foundation.h>
-#import "types.h"
+#import <types.h>
 
 struct IUnityInterfaces;
 
@@ -19,6 +19,10 @@ struct IUnityInterfaces;
 - (void)renderWithEventID:(int)eventID;
 - (BOOL)peekMessage:(struct OCSUnityPluginMessage *)message;
 - (void)popMessage;
+- (void)sendUserData:(const void*)data length:(int)length;
+- (bool)getInput:(uint8_t)device control:(uint8_t)control state:(uint8_t*)state;
+- (bool)getInput:(uint8_t)device control:(uint8_t)control origin:(OCS_VECTOR3D*)origin hitPosition:(OCS_VECTOR3D*)hitPosition hitNormal:(OCS_VECTOR3D*)hitNormal;
+- (bool)getInput:(uint8_t)device control:(uint8_t)control frequency:(float*)frequency amplitude:(float*)amplitude;
 - (void)beginPendInput:(int64_t *)timestamp;
 - (void)pendInput:(uint8_t)device control:(uint8_t)control state:(uint8_t)state;
 - (void)pendInput:(uint8_t)device control:(uint8_t)control byteAxis:(uint8_t)axis;

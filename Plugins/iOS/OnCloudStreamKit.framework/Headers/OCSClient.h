@@ -26,6 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void *)session;
 - (void)notify:(void *)notification;
 - (void)sendInput:(void *)buffer timestamp:(int64_t)timestamp reliable:(BOOL)reliable;
+- (void)sendUserData:(const void*)data length:(int)length;
 
 NS_ASSUME_NONNULL_END
 

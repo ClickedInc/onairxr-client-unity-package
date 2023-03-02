@@ -25,9 +25,11 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
     private Color[] _colors;
     private int[] _gridIndices;
     private int[] _boundaryIndices;
+    private int[] _originOffsetIndicatorIndices;
     private int[] _originIndicatorIndices;
     private float _remainingUntilHide = -1.0f;
     private bool _visible = true;
+    private Vector3 _originOffset;
 
     private int gridSize => MaxDistance * 2 + 1;
     private int gridVerticeCount => gridSize * 4;
@@ -36,6 +38,8 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
     [SerializeField] private Color _colorBoundary = new Color(0.6f, 0.196f, 0.8f);
     [SerializeField] private Color _colorForward = new Color(0.255f, 0.412f, 0.882f);
     [SerializeField] private Color _colorRightward = new Color(0.698f, 0.133f, 0.133f);
+    [SerializeField] private Color _colorOffsetForward = new Color(0.255f, 0.412f, 0.882f);
+    [SerializeField] private Color _colorOffsetRightward = new Color(0.698f, 0.133f, 0.133f);
 
     public bool alwaysVisible {
         get {
@@ -48,6 +52,10 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
             _remainingUntilHide = -1.0f;
             _renderer.enabled = value;
         }
+    }
+
+    public void UpdateOriginOffset(Vector3 offset) {
+        _originOffset = offset;
     }
 
     private void Awake() {
@@ -73,28 +81,14 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
     }
 
     private void Update() {
-        const OVRInput.Controller controller = OVRInput.Controller.RTouch;
-        const OVRInput.RawButton trigger = OVRInput.RawButton.RIndexTrigger;
-        const OVRInput.RawButton buttonOrigin = OVRInput.RawButton.A;
-        const OVRInput.RawButton buttonFront = OVRInput.RawButton.B;
-
         ensureComponentIntegrity();
         updateMesh();
 
         if (Application.isPlaying == false) { return; }
 
-        if (OVRInput.GetDown(buttonOrigin, controller) && OVRInput.Get(trigger, controller)) {
-            var position = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-            _cameraRig.realWorldSpace.SetRealWorldOrigin(
-                _cameraRig.trackingSpaceToWorldMatrix.MultiplyPoint(position)
-            );
-        }
-        else if (OVRInput.GetDown(buttonFront, controller) && OVRInput.Get(trigger, controller)) {
-            var position = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-            _cameraRig.realWorldSpace.SetRealWorldFront(
-                _cameraRig.trackingSpaceToWorldMatrix.MultiplyPoint(position)
-            );
-        }
+        var pos = _thisTransform.position;
+        pos.y = _originOffset.y;
+        _thisTransform.position = pos;
 
         if (alwaysVisible == false) {
             if (_remainingUntilHide < 0) { return; }
@@ -134,18 +128,18 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
             _renderer = gameObject.AddComponent<MeshRenderer>();
         }
         if (_renderer.sharedMaterials == null || 
-            _renderer.sharedMaterials.Length < 2 ||
+            _renderer.sharedMaterials.Length < 3 ||
             _renderer.sharedMaterials[0] == null) {
             var material = new Material(Shader.Find("onAirXR/Unlit world space"));
             material.hideFlags = HideFlags.HideAndDontSave;
 
-            _renderer.sharedMaterials = new Material[] { material, material, material };
+            _renderer.sharedMaterials = new Material[] { material, material, material, material };
         }
     }
 
     private void updateMesh() {
         _mesh.Clear();
-        _mesh.subMeshCount = 3;
+        _mesh.subMeshCount = 4;
 
         var boundary = Application.isEditor ? new Vector3[] {
             new Vector3(-1, 0, 1),
@@ -164,7 +158,7 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
 
         var offset = updateGridLines(_colorGrid);
         offset = updateBoundary(offset, boundary, _colorBoundary);
-        updateOriginIndicator(offset, _colorForward, _colorRightward);
+        updateOriginIndicator(offset, _colorOffsetForward, _colorOffsetRightward, _colorForward, _colorRightward);
     }
 
     private int updateGridLines(Color color) {
@@ -255,7 +249,10 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
         );
     }
 
-    private void updateOriginIndicator(int offset, Color colorForward, Color colorRight) {
+    private void updateOriginIndicator(int offset, Color colorOffsetForward, Color colorOffsetRight, Color colorForward, Color colorRight) {
+        if (_originOffsetIndicatorIndices == null || _originOffsetIndicatorIndices.Length < 12) {
+            _originOffsetIndicatorIndices = new int[12];
+        }
         if (_originIndicatorIndices == null || _originIndicatorIndices.Length < 12) {
             _originIndicatorIndices = new int[12];
         }
@@ -264,8 +261,45 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
         var front = Application.isEditor == false ? _cameraRig.realWorldSpace.realWorldToWorldMatrix.MultiplyPoint(Vector3.forward) : Vector3.forward;
         var right = Application.isEditor == false ? _cameraRig.realWorldSpace.realWorldToWorldMatrix.MultiplyPoint(Vector3.right * 0.5f) : Vector3.right * 0.5f;
 
+        origin.y -= _originOffset.y;
+        front.y -= _originOffset.y;
+        right.y -= _originOffset.y;
+
         var rightward = (right - origin).normalized;
         var forward = (front - origin).normalized;
+
+        var originOffset = origin + _originOffset.x * rightward + _originOffset.z * forward;
+        var frontOffset = front + _originOffset.x * rightward + _originOffset.z * forward;
+        var rightOffset = right + _originOffset.x * rightward + _originOffset.z * forward;
+
+        _vertices[offset] = frontOffset - rightward * OriginIndicatorLineWidth / 2;
+        _vertices[offset + 1] = frontOffset + rightward * OriginIndicatorLineWidth / 2;
+        _vertices[offset + 2] = originOffset - (forward + rightward) * OriginIndicatorLineWidth / 2;
+        _vertices[offset + 3] = originOffset + (forward + rightward) * OriginIndicatorLineWidth / 2;
+        _vertices[offset + 4] = originOffset - (forward + rightward) * OriginIndicatorLineWidth / 2;
+        _vertices[offset + 5] = originOffset + (forward + rightward) * OriginIndicatorLineWidth / 2;
+        _vertices[offset + 6] = rightOffset - forward * OriginIndicatorLineWidth / 2;
+        _vertices[offset + 7] = rightOffset + forward * OriginIndicatorLineWidth / 2;
+
+        _colors[offset] = _colors[offset + 1] = _colors[offset + 2] = _colors[offset + 3] = colorOffsetForward;
+        _colors[offset + 4] = _colors[offset + 5] = _colors[offset + 6] = _colors[offset + 7] = colorOffsetRight;
+
+        _originOffsetIndicatorIndices[0] = offset;
+        _originOffsetIndicatorIndices[1] = offset + 1;
+        _originOffsetIndicatorIndices[2] = offset + 2;
+        _originOffsetIndicatorIndices[3] = offset + 2;
+        _originOffsetIndicatorIndices[4] = offset + 1;
+        _originOffsetIndicatorIndices[5] = offset + 3;
+        _originOffsetIndicatorIndices[6] = offset + 4;
+        _originOffsetIndicatorIndices[7] = offset + 5;
+        _originOffsetIndicatorIndices[8] = offset + 6;
+        _originOffsetIndicatorIndices[9] = offset + 6;
+        _originOffsetIndicatorIndices[10] = offset + 5;
+        _originOffsetIndicatorIndices[11] = offset + 7;
+
+        _mesh.SetIndices(_originOffsetIndicatorIndices, MeshTopology.Triangles, 2);
+
+        offset += 8;
 
         _vertices[offset] = front - rightward * OriginIndicatorLineWidth / 2;
         _vertices[offset + 1] = front + rightward * OriginIndicatorLineWidth / 2;
@@ -292,12 +326,13 @@ public class AirVRRealWorldSpaceSetup : MonoBehaviour {
         _originIndicatorIndices[10] = offset + 5;
         _originIndicatorIndices[11] = offset + 7;
 
-        _mesh.SetIndices(_originIndicatorIndices, MeshTopology.Triangles, 2);
+        _mesh.SetIndices(_originIndicatorIndices, MeshTopology.Triangles, 3);
     }
 
     private int verticeCount(Vector3[] boundary) {
         return gridVerticeCount + 
             (boundary != null ? boundary.Length * 4 : 0) +      // boundary
-            8;                                                  // origin indicator
+            8 +                                                 // origin offset indicator
+            8;                                                  // origin indicator                                                
     }
 }

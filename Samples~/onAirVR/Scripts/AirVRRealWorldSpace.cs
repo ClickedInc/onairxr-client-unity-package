@@ -86,30 +86,10 @@ public class AirVRRealWorldSpace : AirVRRealWorldSpaceBase {
     }
 
     private Matrix4x4 calcRealWorldToPlayAreaMatrix(Matrix4x4 playAreaToWorldMatrix) {
-        const float MaxHeightOfValidRequestedPosition = 0.25f;
+        _originOnPlayArea = playAreaToWorldMatrix.inverse.MultiplyPoint(_requestedOriginInGameWorldSpace);
+        _frontOnPlayArea = playAreaToWorldMatrix.inverse.MultiplyPoint(_requestedFrontInGameWorldSpace);
 
-        var changed = true;
-        var requestedOriginOnPlayArea = playAreaToWorldMatrix.inverse.MultiplyPoint(_requestedOriginInGameWorldSpace);
-        if (Mathf.Abs(requestedOriginOnPlayArea.y) < MaxHeightOfValidRequestedPosition) {
-            _originOnPlayArea = requestedOriginOnPlayArea;
-            _originOnPlayArea.y = 0;
-        }
-        else {
-            changed = false;
-        }
-
-        var requestedFrontOnPlayArea = playAreaToWorldMatrix.inverse.MultiplyPoint(_requestedFrontInGameWorldSpace);
-        if (Mathf.Abs(requestedFrontOnPlayArea.y) < MaxHeightOfValidRequestedPosition) {
-            _frontOnPlayArea = requestedFrontOnPlayArea;
-            _frontOnPlayArea.y = 0;
-        }
-        else {
-            changed = false;
-        }
-
-        if (changed) {
-            SpaceChanged?.Invoke(this);
-        }
+        SpaceChanged?.Invoke(this);
 
         return Matrix4x4.TRS(
             _originOnPlayArea,

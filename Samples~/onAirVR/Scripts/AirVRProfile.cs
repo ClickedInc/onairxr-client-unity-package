@@ -30,7 +30,7 @@ public class AirVRProfile : AirVRProfileBase {
     public override float ipd => OVRManager.profile.ipd;
     public override bool hasInput => true;
     public override RenderType renderType => RenderType.DirectOnTwoEyeTextures;
-    public override bool isUserPresent => OVRManager.instance.isUserPresent;
+    public override bool isUserPresent => OVRManager.instance?.isUserPresent ?? false;
     public override float delayToResumePlayback => 1.5f;
 
     public override float[] leftEyeCameraNearPlane { 
@@ -45,6 +45,8 @@ public class AirVRProfile : AirVRProfileBase {
                     -frust.Fov.DownTan
                 };
             }
+
+            if (OVRManager.display == null) { return new float[] { -1, 1, 1, -1 }; }
 
             var desc = OVRManager.display.GetEyeRenderDesc(UnityEngine.XR.XRNode.LeftEye);
             return new float[] {

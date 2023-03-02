@@ -61,6 +61,10 @@ namespace onAirXR.Client {
         public abstract AirVRProfileBase profile { get; }
         public abstract Matrix4x4 trackingSpaceToWorldMatrix { get; }
 
+        public void SetOpacity(float opacity) {
+            AXRClientPlugin.SetOpacity(opacity);
+        }
+
         public virtual void OnPreConnect() { }
 
         protected virtual void Awake() {

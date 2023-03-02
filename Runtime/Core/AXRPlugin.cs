@@ -17,6 +17,7 @@ namespace onAirXR.Client {
         private const uint RenderEventMaskClearColor = 0x00800000U;
         private const uint RenderEventMaskRenderOnTexture = 0x00400000U;
         private const int RenderEventRenderAspectScale = 1000000;
+        private const int RenderEventOpacityScale = 100;
 
         public enum FrameType {
             StereoLeft = 0,
@@ -217,6 +218,10 @@ namespace onAirXR.Client {
             GL.IssuePluginEvent(axr_SetRenderAspect_RenderThread_Func(), (int)(aspect * RenderEventRenderAspectScale));
         }
 
+        public static void SetOpacity(float opacity) {
+            GL.IssuePluginEvent(axr_SetOpacity_RenderThread_Func(), (int)(opacity * RenderEventOpacityScale));
+        }
+
         public static void PrepareRender() {
             GL.IssuePluginEvent(axr_PrepareRender_RenderThread_Func(), 0);
         }
@@ -262,6 +267,7 @@ namespace onAirXR.Client {
         [DllImport(Name)] private static extern void axr_SetCameraOrientation(AXRVector4D rotation, ref int viewNumber);
         [DllImport(Name)] private static extern void axr_SetCameraProjection(float left, float top, float right, float bottom);
         [DllImport(Name)] private static extern IntPtr axr_SetRenderAspect_RenderThread_Func();
+        [DllImport(Name)] private static extern IntPtr axr_SetOpacity_RenderThread_Func();
         [DllImport(Name)] private static extern IntPtr axr_PrepareRender_RenderThread_Func();
         [DllImport(Name)] private static extern IntPtr axr_PreRenderVideoFrame_RenderThread_Func();
         [DllImport(Name)] private static extern IntPtr axr_RenderVideoFrame_RenderThread_Func();

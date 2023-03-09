@@ -1,7 +1,7 @@
 //  Copyright © 2020 Clicked Inc. All rights reserved.
 
 #import <Foundation/Foundation.h>
-#import "types.h"
+#import <OnCloudStream/OCSClientTypes.h>
 
 @interface MulticastPlugin : NSObject
 

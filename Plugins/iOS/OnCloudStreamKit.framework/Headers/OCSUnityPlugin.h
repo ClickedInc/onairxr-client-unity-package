@@ -1,7 +1,7 @@
 //  Copyright © 2020 Clicked Inc. All rights reserved.
 
 #import <Foundation/Foundation.h>
-#import <types.h>
+#import <OnCloudStream/OCSClientTypes.h>
 
 struct IUnityInterfaces;
 
@@ -20,6 +20,7 @@ struct IUnityInterfaces;
 - (BOOL)peekMessage:(struct OCSUnityPluginMessage *)message;
 - (void)popMessage;
 - (void)sendUserData:(const void*)data length:(int)length;
+- (void)enableProfiler:(bool)enable dataFilename:(const char*)dataFilename deleteDataFileOnDisable:(bool)deleteDataFileOnDisable;
 - (bool)getInput:(uint8_t)device control:(uint8_t)control state:(uint8_t*)state;
 - (bool)getInput:(uint8_t)device control:(uint8_t)control origin:(OCS_VECTOR3D*)origin hitPosition:(OCS_VECTOR3D*)hitPosition hitNormal:(OCS_VECTOR3D*)hitNormal;
 - (bool)getInput:(uint8_t)device control:(uint8_t)control frequency:(float*)frequency amplitude:(float*)amplitude;

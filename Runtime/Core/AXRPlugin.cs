@@ -309,6 +309,7 @@ namespace onAirXR.Client {
         public static void SetCameraOrientation(Quaternion rotation, ref int viewNumber) { }
         public static void SetCameraProjection(float[] projection) { } 
         public static void SetRenderAspect(float aspect) { }
+        public static void SetOpacity(float opacity) { }
         public static bool GetVideoRenderTargetTexture(ref IntPtr texture, ref int width, ref int height) { return false; } 
         public static void PrepareRender() { }
         public static void PreRenderVideoFrame(int viewNumber) { }

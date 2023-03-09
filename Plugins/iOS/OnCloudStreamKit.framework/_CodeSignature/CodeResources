@@ -6,7 +6,7 @@
 	<dict>
 		<key>Headers/MulticastPlugin.h</key>
 		<data>
-		//YRLI/42i61OCp+fLhcR3bCEIU=
+		Qif6yDxwJksZtdwB1V0kfW+Ttek=
 		</data>
 		<key>Headers/OCSAudioPlayer.h</key>
 		<data>
@@ -26,7 +26,7 @@
 		</data>
 		<key>Headers/OCSUnityPlugin.h</key>
 		<data>
-		bRqTQCZO/bUEqif/6abI3PXaYBE=
+		6d76QfIe+IS8Umm0C7AvYFTFor0=
 		</data>
 		<key>Headers/OCSVideoDecoder.h</key>
 		<data>
@@ -48,10 +48,6 @@
 		<data>
 		XrywibBF0O1kWZQD+9vl5FvtJBI=
 		</data>
-		<key>Headers/types.h</key>
-		<data>
-		Tuiq6yOa53jh4C8v8OrSJEM23hM=
-		</data>
 		<key>Info.plist</key>
 		<data>
 		7HW/FfO47qOWqg9r7Rhw7J0Q8W4=
@@ -59,10 +55,6 @@
 		<key>Modules/module.modulemap</key>
 		<data>
 		rHp7RBQtXfNyyJeeIh65dfFiLZI=
-		</data>
-		<key>OCSUnityAppController.m</key>
-		<data>
-		Fxd5FvjZkgXvmiB87O0qmih7wo4=
 		</data>
 		<key>client.license</key>
 		<data>
@@ -79,7 +71,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			Mckp+MAEJyNDQmLJ9tDrrFQazbNyO+nBRuSYihf+hqA=
+			nwMkyjrYs6x+Ki4bj4pQyiG32NsE41SVUcX9UZ8mSD0=
 			</data>
 		</dict>
 		<key>Headers/OCSAudioPlayer.h</key>
@@ -114,7 +106,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			pcbCK/qCEuVD6iyP8+hZjBvZcBF8V3mcLNSGGg5XHIo=
+			YOjlWM4uw0J3gsOWU/VM+phBbOZAVV6oAk0yv1bF+wE=
 			</data>
 		</dict>
 		<key>Headers/OCSVideoDecoder.h</key>
@@ -152,25 +144,11 @@
 			2psEsP52xrTB4spk8J6VbZl1wuhwAegjC91xz9uUmts=
 			</data>
 		</dict>
-		<key>Headers/types.h</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			PWifwtLo3pwU1FCh9SF66NVRGpw2uVALC1Fw4defTCo=
-			</data>
-		</dict>
 		<key>Modules/module.modulemap</key>
 		<dict>
 			<key>hash2</key>
 			<data>
 			FhNpu92Ald0hjvP367ZwiojF1mDudOLKjfczpjNR0r4=
-			</data>
-		</dict>
-		<key>OCSUnityAppController.m</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			oKTcgeUuk/zOvC+Gc1IQ2I7M3biQXf0BvP3RtrAABq4=
 			</data>
 		</dict>
 		<key>client.license</key>

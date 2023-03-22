@@ -90,7 +90,7 @@ namespace onAirXR.Client {
             saveCameraClipPlanes(); // workaround for the very first disconnected event
         }
 
-        private void OnPreRender() {
+        protected virtual void OnPreRender() {
             _videoRenderer?.OnPreRender(_camera, headTracker, profile);
         }
 
@@ -204,6 +204,14 @@ namespace onAirXR.Client {
                             worldToRealWorldMatrix.rotation * _head.rotation
                         );
                     }
+                    else if (referenceVolume != null) {
+                        var worldToVolumeMatrix = referenceVolume.worldToVolumeMatrix;
+
+                        return new Pose(
+                            worldToVolumeMatrix.MultiplyPoint(_head.position),
+                            worldToVolumeMatrix.rotation * _head.rotation
+                        );
+                    }
                     else {
                         return new Pose(_head.localPosition, _head.localRotation);
                     }
@@ -289,7 +297,7 @@ namespace onAirXR.Client {
             public override void OnRenderFrame(AXRClientPlugin.FrameType type, HeadTrackerInputDevice headTracker, AirVRProfileBase profile, AXRRenderCommand renderCommand) {
                 switch (type) {
                     case AXRClientPlugin.FrameType.StereoLeft:
-                        AXRClientPlugin.SetCameraOrientation(headTracker.currentPose.rotation, ref _viewNumber);
+                        AXRClientPlugin.SetCameraPose(headTracker.currentPose, ref _viewNumber);
                         AXRClientPlugin.PreRenderVideoFrame(_viewNumber);
 
                         AXRClientPlugin.RenderVideoFrame(renderCommand, type);
@@ -298,7 +306,7 @@ namespace onAirXR.Client {
                         AXRClientPlugin.RenderVideoFrame(renderCommand, type, profile.useSingleTextureForEyes == false);
                         break;
                     case AXRClientPlugin.FrameType.Mono:
-                        AXRClientPlugin.SetCameraOrientation(headTracker.currentPose.rotation, ref _viewNumber);
+                        AXRClientPlugin.SetCameraPose(headTracker.currentPose, ref _viewNumber);
                         AXRClientPlugin.PreRenderVideoFrame(_viewNumber);
                         AXRClientPlugin.RenderVideoFrame(renderCommand, type);
                         break;

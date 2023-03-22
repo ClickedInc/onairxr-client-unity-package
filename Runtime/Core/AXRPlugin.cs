@@ -124,6 +124,9 @@ namespace onAirXR.Client {
         [DllImport(Name, EntryPoint = "axr_Cleanup")] 
         public static extern void Cleanup();
 
+        [DllImport(Name, EntryPoint = "axr_GetOffscreenFramebufferTexture")]
+        public static extern uint GetOffscreenFramebufferTexture();
+
         [DllImport(Name, EntryPoint = "axr_EnableCopyrightCheck")] 
         public static extern void EnableCopyrightCheck(bool enable);
 
@@ -206,8 +209,8 @@ namespace onAirXR.Client {
             }
         }
 
-        public static void SetCameraOrientation(Quaternion rotation, ref int viewNumber) {
-            axr_SetCameraOrientation(new AXRVector4D(rotation), ref viewNumber);
+        public static void SetCameraPose(Pose pose, ref int viewNumber) {
+            axr_SetCameraPose(new AXRVector3D(pose.position), new AXRVector4D(pose.rotation), ref viewNumber);
         }
 
         public static void SetCameraProjection(float[] projection) {
@@ -222,8 +225,8 @@ namespace onAirXR.Client {
             GL.IssuePluginEvent(axr_SetOpacity_RenderThread_Func(), (int)(opacity * RenderEventOpacityScale));
         }
 
-        public static void PrepareRender() {
-            GL.IssuePluginEvent(axr_PrepareRender_RenderThread_Func(), 0);
+        public static void PrepareRender(bool offscreenRendering) {
+            GL.IssuePluginEvent(axr_PrepareRender_RenderThread_Func(), offscreenRendering ? 1 : 0);
         }
 
         public static void PreRenderVideoFrame(int viewNumber) {
@@ -264,7 +267,7 @@ namespace onAirXR.Client {
         }
 
         [DllImport(Name)] private static extern void axr_SendUserData(IntPtr data, int length);
-        [DllImport(Name)] private static extern void axr_SetCameraOrientation(AXRVector4D rotation, ref int viewNumber);
+        [DllImport(Name)] private static extern void axr_SetCameraPose(AXRVector3D position, AXRVector4D rotation, ref int viewNumber);
         [DllImport(Name)] private static extern void axr_SetCameraProjection(float left, float top, float right, float bottom);
         [DllImport(Name)] private static extern IntPtr axr_SetRenderAspect_RenderThread_Func();
         [DllImport(Name)] private static extern IntPtr axr_SetOpacity_RenderThread_Func();

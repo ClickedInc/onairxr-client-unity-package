@@ -169,7 +169,7 @@ namespace onAirXR.Client {
         }
 
         private void onAirVRSetupResponded(AirVRClientMessage message) {
-            AXRClientPlugin.PrepareRender();
+            AXRClientPlugin.PrepareRender(true);
         }
 
         private void onAirVRRenderPrepared(AirVRClientMessage message) {

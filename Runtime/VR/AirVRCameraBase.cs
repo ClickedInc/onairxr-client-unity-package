@@ -30,6 +30,7 @@ namespace onAirXR.Client {
         [SerializeField] private Texture2D _pointerCookie = null;
         [SerializeField] private float _pointerCookieDepthScaleMultiplier = 0.015f;
 
+        protected Camera thisCamera => _camera;
         protected AirVRProfileBase.VideoBitrate videoBitrate => _videoBitrate;
 
         public HeadTrackerInputDevice headTracker { get; private set; }
@@ -94,7 +95,7 @@ namespace onAirXR.Client {
             _videoRenderer?.OnPreRender(_camera, headTracker, profile);
         }
 
-        private void OnPostRender() {
+        protected virtual void OnPostRender() {
             _videoRenderer?.OnPostRender(_camera, headTracker, profile);
         }
 

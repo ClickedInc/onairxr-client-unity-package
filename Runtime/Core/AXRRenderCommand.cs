@@ -14,6 +14,7 @@ using UnityEngine.Rendering;
 namespace onAirXR.Client {
     public abstract class AXRRenderCommand {
         public abstract void Issue(IntPtr renderFuncPtr, int arg);
+        public abstract void Issue(IntPtr renderFuncPtr, int arg, IntPtr data);
         public abstract void Clear();
     }
 
@@ -29,6 +30,10 @@ namespace onAirXR.Client {
             _commandBuffer.IssuePluginEvent(renderFuncPtr, arg);
         }
 
+        public override void Issue(IntPtr renderFuncPtr, int arg, IntPtr data) {
+            _commandBuffer.IssuePluginEventAndData(renderFuncPtr, arg, data);
+        }
+
         public override void Clear() {
             _commandBuffer.Clear();
         }
@@ -37,6 +42,10 @@ namespace onAirXR.Client {
     public class AXRImmediateRenderCommand : AXRRenderCommand {
         public override void Issue(IntPtr renderFuncPtr, int arg) {
             GL.IssuePluginEvent(renderFuncPtr, arg);
+        }
+
+        public override void Issue(IntPtr renderFuncPtr, int arg, IntPtr data) {
+            throw new NotImplementedException();
         }
 
         public override void Clear() { }

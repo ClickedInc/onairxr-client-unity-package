@@ -237,6 +237,10 @@ namespace onAirXR.Client {
             renderCommand.Issue(axr_RenderVideoFrame_RenderThread_Func(), renderEvent(frameType, clearColor, renderOnTexture));
         }
 
+        public static void RenderVolume(AXRRenderCommand renderCommand, FrameType frameType, IntPtr data) {
+            renderCommand.Issue(axr_RenderVolume_RenderThread_Func(), renderEvent(frameType, false, false), data);
+        }
+
         public static void EndRenderVideoFrame() {
             GL.IssuePluginEvent(axr_EndOfRenderFrame_RenderThread_Func(), 0);
         }
@@ -275,6 +279,7 @@ namespace onAirXR.Client {
         [DllImport(Name)] private static extern IntPtr axr_PreRenderVideoFrame_RenderThread_Func();
         [DllImport(Name)] private static extern IntPtr axr_RenderVideoFrame_RenderThread_Func();
         [DllImport(Name)] private static extern IntPtr axr_EndOfRenderFrame_RenderThread_Func();
+        [DllImport(Name)] private static extern IntPtr axr_RenderVolume_RenderThread_Func();
         [DllImport(Name)] private static extern void axr_PendInputAxis2D(byte device, byte control, AXRVector2D axis2D);
         [DllImport(Name)] private static extern void axr_PendInputPose(byte device, byte control, AXRVector3D position, AXRVector4D rotation);
         [DllImport(Name)] private static extern void axr_PendInputTouch2D(byte device, byte control, AXRVector2D position, byte state, bool active);

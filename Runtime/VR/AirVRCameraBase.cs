@@ -83,6 +83,8 @@ namespace onAirXR.Client {
         protected virtual void Start() {
             runLoopOnEndOfFrame();
 
+            _referenceVolume?.Configure(_camera);
+
             AirVRClient.LoadOnce(profile, this);
             AirVRInputManager.LoadOnce();
 

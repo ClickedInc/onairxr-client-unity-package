@@ -15,6 +15,10 @@ namespace onAirXR.Client {
 
         public Matrix4x4 worldToVolumeMatrix { get; private set; }
 
+        public void Configure(Camera camera) {
+            createTinyOpaqueObjectOntoFrustumEdge(camera);
+        }
+
         public void ProcessPreRender(Camera camera) {
             if (_nativeMeshRenderer == null) {
                 _nativeMeshRenderer = new NativeMeshRenderer(camera, CameraEvent.AfterForwardOpaque);
@@ -38,6 +42,18 @@ namespace onAirXR.Client {
 
         private void OnDestroy() {
             _nativeMeshRenderer?.Cleanup();
+        }
+
+        private void createTinyOpaqueObjectOntoFrustumEdge(Camera camera) {
+            // NOTE: ensure camera renders more than one opaque object to guarantee native mesh renderer to work
+            var prefab = Resources.Load<GameObject>("AXRTinyOpaqueObject");
+            if (prefab == null) { return; }
+
+            var go = Instantiate(prefab, camera.transform);
+            var frustum = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left).decomposeProjection;
+            var y = frustum.bottom / frustum.zNear * frustum.zFar;
+            go.transform.localPosition = new Vector3(0, y, -frustum.zFar);
+            go.transform.localRotation = Quaternion.identity;
         }
 
         private Mesh createVolumeMesh() {

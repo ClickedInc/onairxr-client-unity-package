@@ -29,9 +29,11 @@ namespace onAirXR.Client {
         [SerializeField] private Color _colorLaser = Color.white;
         [SerializeField] private Texture2D _pointerCookie = null;
         [SerializeField] private float _pointerCookieDepthScaleMultiplier = 0.015f;
+        [SerializeField] private AirVRVolume _referenceVolume = null;
 
         protected Camera thisCamera => _camera;
         protected AirVRProfileBase.VideoBitrate videoBitrate => _videoBitrate;
+        protected AirVRVolume referenceVolume => _referenceVolume;
 
         public HeadTrackerInputDevice headTracker { get; private set; }
 
@@ -93,10 +95,12 @@ namespace onAirXR.Client {
 
         protected virtual void OnPreRender() {
             _videoRenderer?.OnPreRender(_camera, headTracker, profile);
+            _referenceVolume?.ProcessPreRender(_camera);
         }
 
         protected virtual void OnPostRender() {
             _videoRenderer?.OnPostRender(_camera, headTracker, profile);
+            _referenceVolume?.ProcessPostRender(_camera);
         }
 
         private void OnDestroy() {
@@ -117,9 +121,9 @@ namespace onAirXR.Client {
 #if UNITY_EDITOR || UNITY_STANDALONE
             _videoRenderer = new WindowsVideoRenderer();
 #elif UNITY_ANDROID
-        _videoRenderer = new AndroidVideoRenderer();
+            _videoRenderer = new AndroidVideoRenderer();
 #else
-        _videoRenderer = null;
+            _videoRenderer = null;
 #endif
         }
 

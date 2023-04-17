@@ -8,7 +8,6 @@ using UnityEngine.Rendering;
 namespace onAirXR.Client {
     public class AirVRVolume : MonoBehaviour {
         private Transform _thisTransform;
-        private Texture2D _decoderSurfaceTexture;
 
         private Mesh _mesh;
         private NativeMeshRenderer _nativeMeshRenderer;
@@ -60,51 +59,48 @@ namespace onAirXR.Client {
             var mesh = new Mesh();
             mesh.subMeshCount = 1;
 
+            mesh.vertices = new[] {
+                Vector3.Scale(new Vector3(-0.5f, -0.5f, -0.5f), _thisTransform.localScale),
+                Vector3.Scale(new Vector3( 0.5f, -0.5f, -0.5f), _thisTransform.localScale),
+                Vector3.Scale(new Vector3( 0.5f,  0.5f, -0.5f), _thisTransform.localScale),
+                Vector3.Scale(new Vector3(-0.5f,  0.5f, -0.5f), _thisTransform.localScale),
+                Vector3.Scale(new Vector3(-0.5f, -0.5f,  0.5f), _thisTransform.localScale),
+                Vector3.Scale(new Vector3( 0.5f, -0.5f,  0.5f), _thisTransform.localScale),
+                Vector3.Scale(new Vector3( 0.5f,  0.5f,  0.5f), _thisTransform.localScale),
+                Vector3.Scale(new Vector3(-0.5f,  0.5f,  0.5f), _thisTransform.localScale)
+            };
+            mesh.uv2 = new[] {
+                new Vector2(0, 0),
+                new Vector2(1, 0),
+                new Vector2(1, 1),
+                new Vector2(0, 1),
+                new Vector2(0, 0),
+                new Vector2(1, 0),
+                new Vector2(1, 1),
+                new Vector2(0, 1)
+            };
+            mesh.SetIndices(new[] {
+                2, 3, 7,
+                2, 7, 6,
+                4, 1, 5,
+                4, 0, 1,
+                7, 0, 4,
+                7, 3, 0,
+                6, 1, 2,
+                6, 5, 1,
+                7, 5, 6,
+                7, 4, 5,
+                3, 1, 0,
+                3, 2, 1
+            }, MeshTopology.Triangles, 0);
+
             mesh.SetVertexBufferParams(
-                4,
+                mesh.vertices.Length,
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3, 0),
                 new VertexAttributeDescriptor(VertexAttribute.TexCoord1, VertexAttributeFormat.Float32, 2, 1)
             );
 
-            mesh.vertices = new[] { 
-                new Vector3(-0.5f * _thisTransform.localScale.x, 0.5f * _thisTransform.localScale.y, 0),
-                new Vector3(0.5f * _thisTransform.localScale.x, 0.5f * _thisTransform.localScale.y, 0),
-                new Vector3(-0.5f * _thisTransform.localScale.x, -0.5f * _thisTransform.localScale.y, 0),
-                new Vector3(0.5f * _thisTransform.localScale.x, -0.5f * _thisTransform.localScale.y, 0)
-            };
-            mesh.uv2 = new[] { 
-                new Vector2(0, 1),
-                new Vector2(1, 1),
-                new Vector2(0, 0),
-                new Vector2(1, 0)
-            };
-            mesh.SetIndices(new[] { 0, 1, 2, 2, 1, 3 }, MeshTopology.Triangles, 0);
-
             return mesh;
-        }
-
-        private void retainDecoderSurface() {
-            var nextTextureID = AXRClientPlugin.GetOffscreenFramebufferTexture();
-            if (_decoderSurfaceTexture != null && _decoderSurfaceTexture.GetNativeTexturePtr().ToInt32() == nextTextureID) { return; }
-
-            releaseDecorderSurface();
-            if (nextTextureID == 0) { return; }
-
-            _decoderSurfaceTexture = new Texture2D(3200, 1600, TextureFormat.ARGB32, false, true);
-            _decoderSurfaceTexture.Apply();
-
-            _decoderSurfaceTexture.UpdateExternalTexture(new IntPtr(nextTextureID));
-
-            //_renderer.material.mainTexture = _decoderSurfaceTexture;
-            //_renderer.enabled = true;
-        }
-
-        private void releaseDecorderSurface() {
-            if (_decoderSurfaceTexture == null) { return; }
-
-            _decoderSurfaceTexture = null;
-            //_renderer.material.mainTexture = null;
-            //_renderer.enabled = false;
         }
 
         private class NativeMeshRenderer {
@@ -171,7 +167,7 @@ namespace onAirXR.Client {
                 indices = mesh.GetNativeIndexBufferPtr();
                 indexCount = (int)mesh.GetIndexCount(0);
 
-                writeMatrixToFloatArray(Matrix4x4.Rotate(camera.transform.rotation), ref viewRotationMatrix);
+                writeMatrixToFloatArray(Matrix4x4.identity, ref viewRotationMatrix);
                 writeMatrixToFloatArray(Matrix4x4.TRS(modelTransform.position, Quaternion.identity, Vector3.one), ref modelTranslationMatrix);
 
                 var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eyeIndex == 1 ? Camera.StereoscopicEye.Right : Camera.StereoscopicEye.Left), true);

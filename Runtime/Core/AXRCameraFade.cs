@@ -124,17 +124,17 @@ namespace onAirXR.Client {
             var halfSize = distance * FadeQuadAtan;
             _fadeMesh = new Mesh();
             _fadeMesh.vertices = new Vector3[] {
-            new Vector3(-halfSize, halfSize, distance),
-            new Vector3(halfSize, halfSize, distance),
-            new Vector3(-halfSize, -halfSize, distance),
-            new Vector3(halfSize, -halfSize, distance)
-        };
+                new Vector3(-halfSize, halfSize, distance),
+                new Vector3(halfSize, halfSize, distance),
+                new Vector3(-halfSize, -halfSize, distance),
+                new Vector3(halfSize, -halfSize, distance)
+            };
             _fadeMesh.uv = new Vector2[] {
-            new Vector2(1, 0),
-            new Vector2(1, 1),
-            new Vector2(0, 0),
-            new Vector2(0, 1)
-        };
+                new Vector2(1, 0),
+                new Vector2(1, 1),
+                new Vector2(0, 0),
+                new Vector2(0, 1)
+            };
             _fadeMesh.triangles = new int[] { 0, 1, 2, 2, 1, 3 };
         }
 

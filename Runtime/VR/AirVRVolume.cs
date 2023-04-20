@@ -22,7 +22,7 @@ namespace onAirXR.Client {
             if (_nativeMeshRenderer == null) {
                 _nativeMeshRenderer = new NativeMeshRenderer(camera, CameraEvent.AfterForwardOpaque);
             }
-            _nativeMeshRenderer.OnPreRender(_mesh, camera, _thisTransform);
+            _nativeMeshRenderer.OnPreRender(_mesh, camera, _thisTransform, worldToVolumeMatrix);
         }
 
         public void ProcessPostRender(Camera camera) {
@@ -60,14 +60,14 @@ namespace onAirXR.Client {
             mesh.subMeshCount = 1;
 
             mesh.vertices = new[] {
-                Vector3.Scale(new Vector3(-0.5f, -0.5f, -0.5f), _thisTransform.localScale),
-                Vector3.Scale(new Vector3( 0.5f, -0.5f, -0.5f), _thisTransform.localScale),
-                Vector3.Scale(new Vector3( 0.5f,  0.5f, -0.5f), _thisTransform.localScale),
-                Vector3.Scale(new Vector3(-0.5f,  0.5f, -0.5f), _thisTransform.localScale),
-                Vector3.Scale(new Vector3(-0.5f, -0.5f,  0.5f), _thisTransform.localScale),
-                Vector3.Scale(new Vector3( 0.5f, -0.5f,  0.5f), _thisTransform.localScale),
-                Vector3.Scale(new Vector3( 0.5f,  0.5f,  0.5f), _thisTransform.localScale),
-                Vector3.Scale(new Vector3(-0.5f,  0.5f,  0.5f), _thisTransform.localScale)
+                new Vector3(-0.5f, -0.5f, -0.5f),
+                new Vector3( 0.5f, -0.5f, -0.5f),
+                new Vector3( 0.5f,  0.5f, -0.5f),
+                new Vector3(-0.5f,  0.5f, -0.5f),
+                new Vector3(-0.5f, -0.5f,  0.5f),
+                new Vector3( 0.5f, -0.5f,  0.5f),
+                new Vector3( 0.5f,  0.5f,  0.5f),
+                new Vector3(-0.5f,  0.5f,  0.5f)
             };
             mesh.uv2 = new[] {
                 new Vector2(0, 0),
@@ -113,10 +113,10 @@ namespace onAirXR.Client {
                 _renderCommand = new AXRCameraEventRenderCommand(camera, cameraEvent);
             }
 
-            public void OnPreRender(Mesh mesh, Camera camera, Transform modelTransform) {
+            public void OnPreRender(Mesh mesh, Camera camera, Transform modelTransform, Matrix4x4 worldToVolumeMatrix) {
                 ensureNativeRenderDataAllocated(_eyeIndex);
 
-                _renderData[_eyeIndex].Update(mesh, camera, _eyeIndex, modelTransform);
+                _renderData[_eyeIndex].Update(mesh, camera, _eyeIndex, modelTransform, worldToVolumeMatrix);
                 Marshal.StructureToPtr(_renderData[_eyeIndex], _nativeRenderData[_eyeIndex], true);
 
                 AXRClientPlugin.RenderVolume(_renderCommand,
@@ -148,18 +148,17 @@ namespace onAirXR.Client {
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RenderData {
-            public static readonly int Size = sizeof(float) * 16 * 3 + IntPtr.Size * 3 + sizeof(int);
+            public static readonly int Size = IntPtr.Size * 3 + sizeof(int) + sizeof(float) * 16 * 2;
 
             public IntPtr vertices;
             public IntPtr texcoords;
             public IntPtr indices;
             public int indexCount;
 
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] viewRotationMatrix;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] modelTranslationMatrix;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] viewProjectionMatrix;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] mvpMatrix;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] modelViewMatrix;
 
-            public void Update(Mesh mesh, Camera camera, int eyeIndex, Transform modelTransform) {
+            public void Update(Mesh mesh, Camera camera, int eyeIndex, Transform modelTransform, Matrix4x4 worldToVolume) {
                 ensureMemoryAlocated();
 
                 vertices = mesh.GetNativeVertexBufferPtr(0);
@@ -167,22 +166,20 @@ namespace onAirXR.Client {
                 indices = mesh.GetNativeIndexBufferPtr();
                 indexCount = (int)mesh.GetIndexCount(0);
 
-                writeMatrixToFloatArray(Matrix4x4.identity, ref viewRotationMatrix);
-                writeMatrixToFloatArray(Matrix4x4.TRS(modelTransform.position, Quaternion.identity, Vector3.one), ref modelTranslationMatrix);
-
-                var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eyeIndex == 1 ? Camera.StereoscopicEye.Right : Camera.StereoscopicEye.Left), true);
-                writeMatrixToFloatArray(projection * camera.worldToCameraMatrix, ref viewProjectionMatrix);
+                var eye = eyeIndex == 1 ? Camera.StereoscopicEye.Right : Camera.StereoscopicEye.Left;
+                var modelViewMatrix = camera.GetStereoViewMatrix(eye) * modelTransform.localToWorldMatrix;
+                var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true);
+                
+                writeMatrixToFloatArray(projection * modelViewMatrix, ref mvpMatrix);
+                writeMatrixToFloatArray(Matrix4x4.Scale(new Vector3(1, 1, -1)) * modelViewMatrix, ref this.modelViewMatrix);
             }
 
             private void ensureMemoryAlocated() {
-                if (viewRotationMatrix == null) {
-                    viewRotationMatrix = new float[16];
+                if (mvpMatrix == null) {
+                    mvpMatrix = new float[16];
                 }
-                if (modelTranslationMatrix == null) {
-                    modelTranslationMatrix = new float[16];
-                }
-                if (viewProjectionMatrix == null) {
-                    viewProjectionMatrix = new float[16];
+                if (modelViewMatrix == null) {
+                    modelViewMatrix = new float[16];
                 }
             }
 

@@ -80,18 +80,18 @@ namespace onAirXR.Client {
                 new Vector2(0, 1)
             };
             mesh.SetIndices(new[] {
-                2, 3, 7,
-                2, 7, 6,
-                4, 1, 5,
-                4, 0, 1,
-                7, 0, 4,
-                7, 3, 0,
-                6, 1, 2,
-                6, 5, 1,
-                7, 5, 6,
-                7, 4, 5,
-                3, 1, 0,
-                3, 2, 1
+                2, 7, 3,
+                2, 6, 7,
+                4, 5, 1,
+                4, 1, 0,
+                7, 4, 0,
+                7, 0, 3,
+                6, 2, 1,
+                6, 1, 5,
+                7, 6, 5,
+                7, 5, 4,
+                3, 0, 1,
+                3, 1, 2
             }, MeshTopology.Triangles, 0);
 
             mesh.SetVertexBufferParams(
@@ -148,7 +148,7 @@ namespace onAirXR.Client {
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RenderData {
-            public static readonly int Size = IntPtr.Size * 3 + sizeof(int) + sizeof(float) * 16 * 2;
+            public static readonly int Size = IntPtr.Size * 3 + sizeof(int) + sizeof(float) * 16;
 
             public IntPtr vertices;
             public IntPtr texcoords;
@@ -156,7 +156,6 @@ namespace onAirXR.Client {
             public int indexCount;
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] mvpMatrix;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] modelViewMatrix;
 
             public void Update(Mesh mesh, Camera camera, int eyeIndex, Transform modelTransform, Matrix4x4 worldToVolume) {
                 ensureMemoryAlocated();
@@ -171,15 +170,11 @@ namespace onAirXR.Client {
                 var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true);
                 
                 writeMatrixToFloatArray(projection * modelViewMatrix, ref mvpMatrix);
-                writeMatrixToFloatArray(Matrix4x4.Scale(new Vector3(1, 1, -1)) * modelViewMatrix, ref this.modelViewMatrix);
             }
 
             private void ensureMemoryAlocated() {
                 if (mvpMatrix == null) {
                     mvpMatrix = new float[16];
-                }
-                if (modelViewMatrix == null) {
-                    modelViewMatrix = new float[16];
                 }
             }
 

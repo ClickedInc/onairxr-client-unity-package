@@ -148,14 +148,15 @@ namespace onAirXR.Client {
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RenderData {
-            public static readonly int Size = IntPtr.Size * 3 + sizeof(int) + sizeof(float) * 16;
+            public static readonly int Size = IntPtr.Size * 3 + sizeof(int) + sizeof(float) * 16 * 2;
 
             public IntPtr vertices;
             public IntPtr texcoords;
             public IntPtr indices;
             public int indexCount;
 
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] mvpMatrix;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] anchorViewMatrix;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] projectionMatrix;
 
             public void Update(Mesh mesh, Camera camera, int eyeIndex, Transform modelTransform, Matrix4x4 worldToVolume) {
                 ensureMemoryAlocated();
@@ -166,15 +167,19 @@ namespace onAirXR.Client {
                 indexCount = (int)mesh.GetIndexCount(0);
 
                 var eye = eyeIndex == 1 ? Camera.StereoscopicEye.Right : Camera.StereoscopicEye.Left;
-                var modelViewMatrix = camera.GetStereoViewMatrix(eye) * modelTransform.localToWorldMatrix;
+                var anchorToView = camera.GetStereoViewMatrix(eye) * Matrix4x4.TRS(modelTransform.position, modelTransform.rotation, Vector3.one);
                 var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true);
                 
-                writeMatrixToFloatArray(projection * modelViewMatrix, ref mvpMatrix);
+                writeMatrixToFloatArray(anchorToView, ref anchorViewMatrix);
+                writeMatrixToFloatArray(projection, ref projectionMatrix);
             }
 
             private void ensureMemoryAlocated() {
-                if (mvpMatrix == null) {
-                    mvpMatrix = new float[16];
+                if (anchorViewMatrix == null) {
+                    anchorViewMatrix = new float[16];
+                }
+                if (projectionMatrix == null) {
+                    projectionMatrix = new float[16];
                 }
             }
 

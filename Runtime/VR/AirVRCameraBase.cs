@@ -29,11 +29,11 @@ namespace onAirXR.Client {
         [SerializeField] private Color _colorLaser = Color.white;
         [SerializeField] private Texture2D _pointerCookie = null;
         [SerializeField] private float _pointerCookieDepthScaleMultiplier = 0.015f;
-        [SerializeField] private AirVRVolume _referenceVolume = null;
+        [SerializeField] private AXRVolume _referenceVolume = null;
 
         protected Camera thisCamera => _camera;
         protected AirVRProfileBase.VideoBitrate videoBitrate => _videoBitrate;
-        protected AirVRVolume referenceVolume => _referenceVolume;
+        protected AXRVolume referenceVolume => _referenceVolume;
 
         public HeadTrackerInputDevice headTracker { get; private set; }
 

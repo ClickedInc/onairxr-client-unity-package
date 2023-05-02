@@ -19,7 +19,7 @@ namespace onAirXR.Client {
             realWorldSpace = null;
         }
 
-        public void SetReferenceVolume(AirVRVolume volume) {
+        public void SetReferenceVolume(AXRVolume volume) {
             referenceVolume = volume;
         }
 
@@ -28,6 +28,6 @@ namespace onAirXR.Client {
         }
 
         protected AirVRRealWorldSpaceBase realWorldSpace { get; private set; }
-        protected AirVRVolume referenceVolume { get; private set; }
+        protected AXRVolume referenceVolume { get; private set; }
     }
 }

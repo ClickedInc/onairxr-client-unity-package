@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace onAirXR.Client {
-    public class AirVRVolume : MonoBehaviour {
+    public class AXRVolume : MonoBehaviour {
         private Transform _thisTransform;
 
         private Mesh _mesh;

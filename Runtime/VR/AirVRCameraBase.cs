@@ -29,11 +29,10 @@ namespace onAirXR.Client {
         [SerializeField] private Color _colorLaser = Color.white;
         [SerializeField] private Texture2D _pointerCookie = null;
         [SerializeField] private float _pointerCookieDepthScaleMultiplier = 0.015f;
-        [SerializeField] private AXRVolume _referenceVolume = null;
 
         protected Camera thisCamera => _camera;
         protected AirVRProfileBase.VideoBitrate videoBitrate => _videoBitrate;
-        protected AXRVolume referenceVolume => _referenceVolume;
+        protected AXRVolume volumeAnchor { get; private set; }
 
         public HeadTrackerInputDevice headTracker { get; private set; }
 
@@ -68,6 +67,7 @@ namespace onAirXR.Client {
             AXRClientPlugin.SetOpacity(opacity);
         }
 
+        protected virtual void OnSetupVolumeAnchor(AXRVolume volumeAnchor) {}
         public virtual void OnPreConnect() { }
 
         protected virtual void Awake() {
@@ -78,12 +78,13 @@ namespace onAirXR.Client {
             createAudioRenderer();
 
             headTracker = new HeadTrackerInputDevice(_thisTransform);
+            volumeAnchor = FindObjectOfType<AXRVolume>();
         }
 
         protected virtual void Start() {
             runLoopOnEndOfFrame();
 
-            _referenceVolume?.Configure(_camera);
+            volumeAnchor?.Configure(_camera);
 
             AirVRClient.LoadOnce(profile, this);
             AirVRInputManager.LoadOnce();
@@ -93,16 +94,18 @@ namespace onAirXR.Client {
             AirVRInputManager.RegisterInputSender(headTracker);
 
             saveCameraClipPlanes(); // workaround for the very first disconnected event
+
+            OnSetupVolumeAnchor(volumeAnchor);
         }
 
         protected virtual void OnPreRender() {
             _videoRenderer?.OnPreRender(_camera, headTracker, profile);
-            _referenceVolume?.ProcessPreRender(_camera);
+            volumeAnchor?.ProcessPreRender(_camera);
         }
 
         protected virtual void OnPostRender() {
             _videoRenderer?.OnPostRender(_camera, headTracker, profile);
-            _referenceVolume?.ProcessPostRender(_camera);
+            volumeAnchor?.ProcessPostRender(_camera);
         }
 
         private void OnDestroy() {
@@ -203,20 +206,18 @@ namespace onAirXR.Client {
 
             public Pose currentPose {
                 get {
-                    if (realWorldSpace != null) {
+                    if (isVolumeAnchorAvailable) {
+                        return new Pose(
+                            worldToVolumeMatrix.MultiplyPoint(_head.position),
+                            worldToVolumeMatrix.rotation * _head.rotation
+                        );
+                    }
+                    else if (realWorldSpace != null) {
                         var worldToRealWorldMatrix = realWorldSpace.realWorldToWorldMatrix.inverse;
 
                         return new Pose(
                             worldToRealWorldMatrix.MultiplyPoint(_head.position),
                             worldToRealWorldMatrix.rotation * _head.rotation
-                        );
-                    }
-                    else if (referenceVolume != null) {
-                        var worldToVolumeMatrix = referenceVolume.worldToVolumeMatrix;
-
-                        return new Pose(
-                            worldToVolumeMatrix.MultiplyPoint(_head.position),
-                            worldToVolumeMatrix.rotation * _head.rotation
                         );
                     }
                     else {

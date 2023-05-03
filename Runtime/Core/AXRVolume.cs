@@ -8,9 +8,8 @@ using UnityEngine.Rendering;
 namespace onAirXR.Client {
     public class AXRVolume : MonoBehaviour {
         private Transform _thisTransform;
-
-        private Mesh _mesh;
-        private NativeMeshRenderer _nativeMeshRenderer;
+        private RenderEventEmitter _renderEventEmitter;
+        private GameObject _tinyOpaqueObject;
 
         public Matrix4x4 worldToVolumeMatrix { get; private set; }
 
@@ -19,14 +18,14 @@ namespace onAirXR.Client {
         }
 
         public void ProcessPreRender(Camera camera) {
-            if (_nativeMeshRenderer == null) {
-                _nativeMeshRenderer = new NativeMeshRenderer(camera, CameraEvent.AfterForwardOpaque);
+            if (_renderEventEmitter == null) {
+                _renderEventEmitter = new RenderEventEmitter(camera, CameraEvent.AfterForwardOpaque);
             }
-            _nativeMeshRenderer.OnPreRender(_mesh, camera, _thisTransform, worldToVolumeMatrix);
+            _renderEventEmitter.OnPreRender(camera, _thisTransform);
         }
 
         public void ProcessPostRender(Camera camera) {
-            _nativeMeshRenderer.OnPostRender();
+            _renderEventEmitter.OnPostRender();
         }
 
         private void Awake() {
@@ -35,12 +34,12 @@ namespace onAirXR.Client {
             worldToVolumeMatrix = Matrix4x4.TRS(_thisTransform.position, _thisTransform.rotation, Vector3.one).inverse;
         }
 
-        private void Start() {
-            _mesh = createVolumeMesh();
-        }
-
         private void OnDestroy() {
-            _nativeMeshRenderer?.Cleanup();
+            _renderEventEmitter?.Cleanup();
+
+            if (_tinyOpaqueObject != null) {
+                Destroy(_tinyOpaqueObject);
+            }
         }
 
         private void createTinyOpaqueObjectOntoFrustumEdge(Camera camera) {
@@ -48,75 +47,31 @@ namespace onAirXR.Client {
             var prefab = Resources.Load<GameObject>("AXRTinyOpaqueObject");
             if (prefab == null) { return; }
 
-            var go = Instantiate(prefab, camera.transform);
+            if (_tinyOpaqueObject != null) {
+                Destroy(_tinyOpaqueObject);
+            }
+
+            _tinyOpaqueObject = Instantiate(prefab, camera.transform);
             var frustum = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left).decomposeProjection;
             var y = frustum.bottom / frustum.zNear * frustum.zFar;
-            go.transform.localPosition = new Vector3(0, y, -frustum.zFar);
-            go.transform.localRotation = Quaternion.identity;
+            _tinyOpaqueObject.transform.localPosition = new Vector3(0, y, -frustum.zFar);
+            _tinyOpaqueObject.transform.localRotation = Quaternion.identity;
         }
 
-        private Mesh createVolumeMesh() {
-            var mesh = new Mesh();
-            mesh.subMeshCount = 1;
-
-            mesh.vertices = new[] {
-                new Vector3(-0.5f, -0.5f, -0.5f),
-                new Vector3( 0.5f, -0.5f, -0.5f),
-                new Vector3( 0.5f,  0.5f, -0.5f),
-                new Vector3(-0.5f,  0.5f, -0.5f),
-                new Vector3(-0.5f, -0.5f,  0.5f),
-                new Vector3( 0.5f, -0.5f,  0.5f),
-                new Vector3( 0.5f,  0.5f,  0.5f),
-                new Vector3(-0.5f,  0.5f,  0.5f)
-            };
-            mesh.uv2 = new[] {
-                new Vector2(0, 0),
-                new Vector2(1, 0),
-                new Vector2(1, 1),
-                new Vector2(0, 1),
-                new Vector2(0, 0),
-                new Vector2(1, 0),
-                new Vector2(1, 1),
-                new Vector2(0, 1)
-            };
-            mesh.SetIndices(new[] {
-                2, 7, 3,
-                2, 6, 7,
-                4, 5, 1,
-                4, 1, 0,
-                7, 4, 0,
-                7, 0, 3,
-                6, 2, 1,
-                6, 1, 5,
-                7, 6, 5,
-                7, 5, 4,
-                3, 0, 1,
-                3, 1, 2
-            }, MeshTopology.Triangles, 0);
-
-            mesh.SetVertexBufferParams(
-                mesh.vertices.Length,
-                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3, 0),
-                new VertexAttributeDescriptor(VertexAttribute.TexCoord1, VertexAttributeFormat.Float32, 2, 1)
-            );
-
-            return mesh;
-        }
-
-        private class NativeMeshRenderer {
+        private class RenderEventEmitter {
             private AXRCameraEventRenderCommand _renderCommand;
             private RenderData[] _renderData = new RenderData[2];
             private IntPtr[] _nativeRenderData = new IntPtr[2];
             private int _eyeIndex = 0;
 
-            public NativeMeshRenderer(Camera camera, CameraEvent cameraEvent) {
+            public RenderEventEmitter(Camera camera, CameraEvent cameraEvent) {
                 _renderCommand = new AXRCameraEventRenderCommand(camera, cameraEvent);
             }
 
-            public void OnPreRender(Mesh mesh, Camera camera, Transform modelTransform, Matrix4x4 worldToVolumeMatrix) {
+            public void OnPreRender(Camera camera, Transform volumeTransform) {
                 ensureNativeRenderDataAllocated(_eyeIndex);
 
-                _renderData[_eyeIndex].Update(mesh, camera, _eyeIndex, modelTransform, worldToVolumeMatrix);
+                _renderData[_eyeIndex].Update(camera, _eyeIndex, volumeTransform);
                 Marshal.StructureToPtr(_renderData[_eyeIndex], _nativeRenderData[_eyeIndex], true);
 
                 AXRClientPlugin.RenderVolume(_renderCommand,
@@ -148,26 +103,16 @@ namespace onAirXR.Client {
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RenderData {
-            public static readonly int Size = IntPtr.Size * 3 + sizeof(int) + sizeof(float) * 16 * 2;
-
-            public IntPtr vertices;
-            public IntPtr texcoords;
-            public IntPtr indices;
-            public int indexCount;
+            public static readonly int Size = sizeof(float) * 16 * 2;
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] anchorViewMatrix;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] projectionMatrix;
 
-            public void Update(Mesh mesh, Camera camera, int eyeIndex, Transform modelTransform, Matrix4x4 worldToVolume) {
+            public void Update(Camera camera, int eyeIndex, Transform volumeTransform) {
                 ensureMemoryAlocated();
 
-                vertices = mesh.GetNativeVertexBufferPtr(0);
-                texcoords = mesh.GetNativeVertexBufferPtr(1);
-                indices = mesh.GetNativeIndexBufferPtr();
-                indexCount = (int)mesh.GetIndexCount(0);
-
                 var eye = eyeIndex == 1 ? Camera.StereoscopicEye.Right : Camera.StereoscopicEye.Left;
-                var anchorToView = camera.GetStereoViewMatrix(eye) * Matrix4x4.TRS(modelTransform.position, modelTransform.rotation, Vector3.one);
+                var anchorToView = camera.GetStereoViewMatrix(eye) * Matrix4x4.TRS(volumeTransform.position, volumeTransform.rotation, Vector3.one);
                 var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true);
                 
                 writeMatrixToFloatArray(anchorToView, ref anchorViewMatrix);

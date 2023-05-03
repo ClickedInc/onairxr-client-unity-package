@@ -7,8 +7,12 @@
 
  ***********************************************************/
 
+using UnityEngine;
+
 namespace onAirXR.Client {
     public abstract class AirVRTrackerInputDevice : AXRInputSender {
+        private AXRVolume _volumeAnchor;
+
         public bool usingRealWorldSpace => realWorldSpace != null;
 
         public void setRealWorldSpace(AirVRRealWorldSpaceBase realWorldSpace) {
@@ -19,15 +23,16 @@ namespace onAirXR.Client {
             realWorldSpace = null;
         }
 
-        public void SetReferenceVolume(AXRVolume volume) {
-            referenceVolume = volume;
+        public void SetVolumeAnchor(AXRVolume volume) {
+            _volumeAnchor = volume;
         }
 
-        public void ClearReferenceVolume() {
-            referenceVolume = null;
+        public void ClearVolumeAnchor() {
+            _volumeAnchor = null;
         }
 
         protected AirVRRealWorldSpaceBase realWorldSpace { get; private set; }
-        protected AXRVolume referenceVolume { get; private set; }
+        protected bool isVolumeAnchorAvailable => _volumeAnchor != null;
+        protected Matrix4x4 worldToVolumeMatrix => isVolumeAnchorAvailable ? _volumeAnchor.worldToVolumeMatrix : Matrix4x4.identity;
     }
 }

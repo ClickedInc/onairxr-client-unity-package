@@ -24,7 +24,13 @@ public class AirVRLeftHandTrackerInputDevice : AirVRTrackerInputDevice {
             var position = OVRInput.GetLocalControllerPosition(controller);
             var rotation = OVRInput.GetLocalControllerRotation(controller);
 
-            if (realWorldSpace != null) {
+            if (isVolumeAnchorAvailable) {
+                return new Pose(
+                    worldToVolumeMatrix.MultiplyPoint(position),
+                    worldToVolumeMatrix.rotation * rotation
+                );
+            }
+            else if (realWorldSpace != null) {
                 var trackingSpaceToRealWorldMatrix = (realWorldSpace as AirVRRealWorldSpace).trackingSpaceToRealWorldMatrix;
 
                 return new Pose(

@@ -13,8 +13,6 @@ using onAirXR.Client;
 [RequireComponent(typeof(Camera))]
 
 public class AirVRCamera : AirVRCameraBase {
-    private static AirVRCamera _instance;
-
     [SerializeField] private bool _preferRealWorldSpace = false;
 
     private Transform _trackingSpace;
@@ -46,10 +44,10 @@ public class AirVRCamera : AirVRCameraBase {
     }
 
     protected override void Start() {
-        base.Start();
-
         leftHandTracker = new AirVRLeftHandTrackerInputDevice();
         rightHandTracker = new AirVRRightHandTrackerInputDevice();
+
+        base.Start();
 
         AirVRInputManager.RegisterInputSender(leftHandTracker);
         AirVRInputManager.RegisterInputSender(rightHandTracker);
@@ -70,6 +68,14 @@ public class AirVRCamera : AirVRCameraBase {
             leftHandTracker.setRealWorldSpace(realWorldSpace);
             rightHandTracker.setRealWorldSpace(realWorldSpace);
         }
+    }
+
+    protected override void OnSetupVolumeAnchor(AXRVolume volumeAnchor) {
+        if (volumeAnchor == null) { return; }
+
+        headTracker.SetVolumeAnchor(volumeAnchor);
+        leftHandTracker.SetVolumeAnchor(volumeAnchor);
+        rightHandTracker.SetVolumeAnchor(volumeAnchor);
     }
 
     private void Update() {

@@ -18,7 +18,7 @@ public class AirVRProfile : AirVRProfileBase {
     public override (int width, int height) defaultVideoResolution {
         get {
 #if UNITY_EDITOR || UNITY_STANDALONE
-            return (2048, 1024);
+            return (2048, 2048);
 #else
             return (3200, 1600);
 #endif
@@ -30,7 +30,7 @@ public class AirVRProfile : AirVRProfileBase {
     public override float ipd => OVRManager.profile.ipd;
     public override bool hasInput => true;
     public override RenderType renderType => RenderType.DirectOnTwoEyeTextures;
-    public override bool isUserPresent => OVRManager.instance?.isUserPresent ?? false;
+    public override bool isUserPresent => OVRManager.instance.isUserPresent;
     public override float delayToResumePlayback => 1.5f;
 
     public override float[] leftEyeCameraNearPlane { 
@@ -45,8 +45,6 @@ public class AirVRProfile : AirVRProfileBase {
                     -frust.Fov.DownTan
                 };
             }
-
-            if (OVRManager.display == null) { return new float[] { -1, 1, 1, -1 }; }
 
             var desc = OVRManager.display.GetEyeRenderDesc(UnityEngine.XR.XRNode.LeftEye);
             return new float[] {
@@ -66,6 +64,8 @@ public class AirVRProfile : AirVRProfileBase {
 
 	public override int[] leftEyeViewport { 
 		get {
+            //return new int[] { 0, 0, 1600, 1600 };
+
 			OVRDisplay.EyeRenderDesc desc = OVRManager.display.GetEyeRenderDesc(UnityEngine.XR.XRNode.LeftEye);
 			return new int[] { 0, 0, (int)desc.resolution.x, (int)desc.resolution.y };
 		}

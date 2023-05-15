@@ -16,7 +16,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-- (instancetype)initWithLicenseFile:(NSString *)path;
 - (void)connectTo:(NSString *)hostname port:(NSInteger)port config:(NSDictionary *)config;
 - (void)connectTo:(NSString *)hostname port:(NSInteger)port json:(NSString *)json;
 - (void)disconnect;

@@ -164,7 +164,7 @@ namespace onAirXR.Client {
         public static extern void EnableNetworkTimeWarp(bool enable);
 
         [DllImport(Name, EntryPoint = "axr_GetVideoRenderTargetTexture")] 
-        public static extern bool GetVideoRenderTargetTexture(ref IntPtr texture, ref int width, ref int height);
+        public static extern bool GetVideoRenderTargetTexture(out IntPtr texture, out int width, out int height);
 
         [DllImport(Name, EntryPoint = "axr_GetAudioData")] 
         public static extern bool GetAudioData([MarshalAs(UnmanagedType.LPArray)] float[] buffer, int length, int channels);
@@ -225,8 +225,8 @@ namespace onAirXR.Client {
             GL.IssuePluginEvent(axr_SetOpacity_RenderThread_Func(), (int)(opacity * RenderEventOpacityScale));
         }
 
-        public static void PrepareRender(bool offscreenRendering) {
-            GL.IssuePluginEvent(axr_PrepareRender_RenderThread_Func(), offscreenRendering ? 1 : 0);
+        public static void PrepareRender() {
+            GL.IssuePluginEvent(axr_PrepareRender_RenderThread_Func(), 0);
         }
 
         public static void PreRenderVideoFrame(int viewNumber) {

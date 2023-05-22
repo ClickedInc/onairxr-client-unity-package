@@ -11,11 +11,11 @@ using UnityEngine;
 
 namespace onAirXR.Client {
     public abstract class AirVRRealWorldSpaceBase {
-        protected AirVRCameraBase cameraRig { get; private set; }
+        protected AXRCameraBase cameraRig { get; private set; }
 
         public Matrix4x4 realWorldToWorldMatrix { get; private set; }
 
-        public AirVRRealWorldSpaceBase(AirVRCameraBase cameraRig) {
+        public AirVRRealWorldSpaceBase(AXRCameraBase cameraRig) {
             this.cameraRig = cameraRig;
         }
 

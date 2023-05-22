@@ -169,7 +169,7 @@ namespace onAirXR.Client {
         }
 
         private void onAirVRSetupResponded(AirVRClientMessage message) {
-            AXRClientPlugin.PrepareRender(true);
+            AXRClientPlugin.PrepareRender();
         }
 
         private void onAirVRRenderPrepared(AirVRClientMessage message) {
@@ -177,7 +177,7 @@ namespace onAirXR.Client {
                 var texture = IntPtr.Zero;
                 int width = 0, height = 0;
 
-                if (AXRClientPlugin.GetVideoRenderTargetTexture(ref texture, ref width, ref height)) {
+                if (AXRClientPlugin.GetVideoRenderTargetTexture(out texture, out width, out height)) {
                     _videoFrameRenderer.SetVideoFrameTexture(Texture2D.CreateExternalTexture(width, height, TextureFormat.RGBA32, false, false, texture));
                     _videoFrameRenderer.enabled = true;
                 }

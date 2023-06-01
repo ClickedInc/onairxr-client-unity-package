@@ -33,19 +33,24 @@ namespace onAirXR.Client {
 
             switch (bitrate) {
                 case VideoBitrate.Low:
-                    videoMinBitrate = 6000000;
-                    videoStartBitrate = 8000000;
+                    videoMinBitrate = 8000000;
+                    videoStartBitrate = 12000000;
                     videoMaxBitrate = 16000000;
                     break;
                 case VideoBitrate.Normal:
-                    videoMinBitrate = 8000000;
-                    videoStartBitrate = 16000000;
-                    videoMaxBitrate = 28000000;
+                    videoMinBitrate = 32000000;
+                    videoStartBitrate = 40000000;
+                    videoMaxBitrate = 48000000;
                     break;
                 case VideoBitrate.High:
-                    videoMinBitrate = 8000000;
-                    videoStartBitrate = 24000000;
-                    videoMaxBitrate = 40000000;
+                    videoMinBitrate = 40000000;
+                    videoStartBitrate = 48000000;
+                    videoMaxBitrate = 64000000;
+                    break;
+                case VideoBitrate.Best:
+                    videoMinBitrate = 80000000;
+                    videoStartBitrate = 96000000;
+                    videoMaxBitrate = 112000000;
                     break;
                 default:
                     break;

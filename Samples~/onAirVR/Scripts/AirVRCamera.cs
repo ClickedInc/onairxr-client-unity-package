@@ -11,82 +11,52 @@ using UnityEngine;
 using onAirXR.Client;
 
 [RequireComponent(typeof(Camera))]
-
-public class AirVRCamera : AirVRCameraBase {
-    [SerializeField] private bool _preferRealWorldSpace = false;
-
-    private Transform _trackingSpace;
+public class AirVRCamera : AXRCameraBase {
     private AirVRProfile _profile;
-    private AirVRLeftHandTracker _leftHandTrackerFeedback;
-    private AirVRRightHandTracker _rightHandTrackerFeedback;
+    private AirVRControllerInputDevice _controller;
+    private AirVRLeftHandTrackerFeedback _leftHandTrackerFeedback;
+    private AirVRRightHandTrackerFeedback _rightHandTrackerFeedback;
 
-    public AirVRRealWorldSpace realWorldSpace { get; private set; }
-    public override Matrix4x4 trackingSpaceToWorldMatrix => _trackingSpace.localToWorldMatrix;
+    [SerializeField] private AXRAnchorComponent _anchor = null;
 
     public AirVRLeftHandTrackerInputDevice leftHandTracker { get; private set; }
     public AirVRRightHandTrackerInputDevice rightHandTracker { get; private set; }
 
-    public override void OnPreConnect() {
-        _leftHandTrackerFeedback?.OnPreConnect(_profile);
-        _rightHandTrackerFeedback?.OnPreConnect(_profile);
+    protected override IAXRAnchor anchor => _anchor;
+    public override AXRProfileBase profile => _profile;
+    public override float deviceBatteryLevel => SystemInfo.batteryLevel;
+
+    public override void OnPreLink() {
+        _leftHandTrackerFeedback.OnPreLink(_profile);
+        _rightHandTrackerFeedback.OnPreLink(_profile);
     }
 
-    protected override void Awake () {
-        if (Application.isEditor) {
-            AirVRClient.automaticallyPauseWhenUserNotPresent = false;
-        }
+    protected override void Awake() {
+        _profile = new AirVRProfile();
 
-        AXRClientPlugin.Load();
-        
         base.Awake();
-        _profile = new AirVRProfile(videoBitrate);
-        _trackingSpace = transform.parent;
     }
 
     protected override void Start() {
-        leftHandTracker = new AirVRLeftHandTrackerInputDevice();
-        rightHandTracker = new AirVRRightHandTrackerInputDevice();
-
         base.Start();
 
-        AirVRInputManager.RegisterInputSender(leftHandTracker);
-        AirVRInputManager.RegisterInputSender(rightHandTracker);
-        AirVRInputManager.RegisterInputSender(new AirVRControllerInputDevice());
-
-        var desc = pointerDesc;
-        _leftHandTrackerFeedback = gameObject.AddComponent<AirVRLeftHandTracker>();
-        _leftHandTrackerFeedback.Configure(_profile, leftControllerModel, desc);
-
-        _rightHandTrackerFeedback = gameObject.AddComponent<AirVRRightHandTracker>();
-        _rightHandTrackerFeedback.Configure(_profile, rightControllerModel, desc);
-
-        if (_preferRealWorldSpace && 
-            (Application.isEditor || AirVROVRInputHelper.GetHeadsetType() == AirVROVRInputHelper.HeadsetType.Quest)) {
-            realWorldSpace = new AirVRRealWorldSpace(this);
-
-            headTracker.setRealWorldSpace(realWorldSpace);
-            leftHandTracker.setRealWorldSpace(realWorldSpace);
-            rightHandTracker.setRealWorldSpace(realWorldSpace);
-        }
+        _leftHandTrackerFeedback = gameObject.AddComponent<AirVRLeftHandTrackerFeedback>();
+        _rightHandTrackerFeedback = gameObject.AddComponent<AirVRRightHandTrackerFeedback>();
     }
 
-    protected override void OnSetupVolumeAnchor(AXRVolume volumeAnchor) {
-        if (volumeAnchor == null) { return; }
-
-        headTracker.SetVolumeAnchor(volumeAnchor);
-        leftHandTracker.SetVolumeAnchor(volumeAnchor);
-        rightHandTracker.SetVolumeAnchor(volumeAnchor);
-    }
-
-    private void Update() {
-        if (realWorldSpace != null) {
-            realWorldSpace.Update();
-        }
-    }
-
-    public override AirVRProfileBase profile => _profile;
-
-    protected override void RecenterPose() {
+    protected override void OnRecenterPose() {
+        // NOTE: recenter pose may not work on recent Oculus runtimes
         OVRManager.display.RecenterPose();
+    }
+
+    protected override void OnPostStart(IAXRAnchor anchor) {
+        var trackingSpace = transform.parent;
+        leftHandTracker = new AirVRLeftHandTrackerInputDevice(trackingSpace, anchor);
+        rightHandTracker = new AirVRRightHandTrackerInputDevice(trackingSpace, anchor);
+        _controller = new AirVRControllerInputDevice();
+
+        AXRClient.inputManager.Register(leftHandTracker);
+        AXRClient.inputManager.Register(rightHandTracker);
+        AXRClient.inputManager.Register(_controller);
     }
 }

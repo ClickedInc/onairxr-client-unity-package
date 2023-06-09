@@ -111,7 +111,7 @@ namespace onAirXR.Client {
     public class AXRELinkage {
         public string address;
 
-        public string host {
+        public string ipaddr {
             get {
                 if (string.IsNullOrEmpty(address)) { return null; }
 

@@ -10,41 +10,31 @@
 using UnityEngine;
 using onAirXR.Client;
 
-public class AirVRRightHandTrackerInputDevice : AirVRTrackerInputDevice {
-    public AXRDeviceStatus currentStatus {
-        get {
-            return AirVROVRInputHelper.IsConnected(OVRInput.Controller.RTouch) ? AXRDeviceStatus.Ready : AXRDeviceStatus.Unavailable;
-        }
-    }
+public class AirVRRightHandTrackerInputDevice : AXRTrackedInputDevice {
+    private Transform _trackingSpace;
+
+    public AXRDeviceStatus currentStatus => AirVROVRInputHelper.IsConnected(OVRInput.Controller.RTouch) ? AXRDeviceStatus.Ready : AXRDeviceStatus.Unavailable;
 
     public Pose currentPose {
         get {
             const OVRInput.Controller controller = OVRInput.Controller.RTouch;
 
-            var position = OVRInput.GetLocalControllerPosition(controller);
-            var rotation = OVRInput.GetLocalControllerRotation(controller);
+            var trackingSpaceToWorld = _trackingSpace.localToWorldMatrix;
+            var pos = trackingSpaceToWorld.MultiplyPoint(OVRInput.GetLocalControllerPosition(controller));
+            var rot = trackingSpaceToWorld.rotation * OVRInput.GetLocalControllerRotation(controller);
 
-            if (isVolumeAnchorAvailable) {
-                return new Pose(
-                    worldToVolumeMatrix.MultiplyPoint(position),
-                    worldToVolumeMatrix.rotation * rotation
-                );
-            }
-            else if (realWorldSpace != null) {
-                var trackingSpaceToRealWorldMatrix = (realWorldSpace as AirVRRealWorldSpace).trackingSpaceToRealWorldMatrix;
-
-                return new Pose(
-                    trackingSpaceToRealWorldMatrix.MultiplyPoint(position),
-                    trackingSpaceToRealWorldMatrix.rotation * rotation
-                );
-            }
-            else {
-                return new Pose(position, rotation);
-            }
+            var worldToAnchor = anchor?.worldToAnchorMatrix ?? Matrix4x4.identity;
+            return new Pose(
+                worldToAnchor.MultiplyPoint(pos),
+                worldToAnchor.rotation * rot
+            );
         }
     }
 
-    // implements AirVRTrackerInputDevice
+    public AirVRRightHandTrackerInputDevice(Transform trackingSpace, IAXRAnchor anchor) : base(anchor) {
+        _trackingSpace = trackingSpace;
+    }
+
     public override byte id => (byte)AXRInputDeviceID.RightHandTracker;
 
     public override void PendInputsPerFrame(AXRInputStream inputStream) {

@@ -14,7 +14,6 @@ namespace onAirXR.Client {
         private VideoRenderer _videoRenderer;
         private VolumeRenderer _volumeRenderer;
         private AXRClientAudioRenderer _audioRenderer;
-        private AXRAnchor _anchor;
         private AXRHeadTrackerInputDevice _headTracker;
         private bool _aboutToDestroy;
         private Vector2 _savedCameraClipPlanes;
@@ -24,11 +23,13 @@ namespace onAirXR.Client {
 
         protected Camera thisCamera => _camera;
 
+        protected abstract IAXRAnchor anchor { get; }
+
         public abstract AXRProfileBase profile { get; }
         public abstract float deviceBatteryLevel { get; }
 
         protected abstract void OnRecenterPose();
-        protected abstract void OnPostStart(AXRAnchor anchor);
+        protected abstract void OnPostStart(IAXRAnchor anchor);
 
         public virtual void OnPreLink() {}
 
@@ -38,8 +39,7 @@ namespace onAirXR.Client {
             _videoRenderer = createVideoRenderer();
             _volumeRenderer = new VolumeRenderer(_camera);
             _audioRenderer = createAudioRenderer();
-            _anchor = new AXRAnchor();
-            _headTracker = new AXRHeadTrackerInputDevice(this, _anchor, _thisTransform);
+            _headTracker = new AXRHeadTrackerInputDevice(this, anchor, _thisTransform);
 
             AXRClientPlugin.Load();   
         }
@@ -57,12 +57,12 @@ namespace onAirXR.Client {
             // workaround: save for the very first disconnected event
             saveCameraClipPlanes(); 
 
-            OnPostStart(_anchor);
+            OnPostStart(anchor);
         }
 
         protected virtual void OnPreRender() {
             _videoRenderer.OnPreRender(_camera, _headTracker, profile);
-            _volumeRenderer.OnPreRender(_camera, _anchor);
+            _volumeRenderer.OnPreRender(_camera, anchor);
         }
 
         protected virtual void OnPostRender() {
@@ -308,7 +308,7 @@ namespace onAirXR.Client {
                 _renderCommand = new AXRCameraEventRenderCommand(camera, CameraEvent.AfterForwardOpaque);
             }
 
-            public void OnPreRender(Camera camera, AXRAnchor anchor) {
+            public void OnPreRender(Camera camera, IAXRAnchor anchor) {
                 ensureNativeRenderDataAllocated(_eyeIndex);
 
                 _renderData[_eyeIndex].Update(camera, _eyeIndex, anchor);
@@ -348,11 +348,12 @@ namespace onAirXR.Client {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] anchorViewMatrix;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)] public float[] projectionMatrix;
 
-            public void Update(Camera camera, int eyeIndex, AXRAnchor anchor) {
+            public void Update(Camera camera, int eyeIndex, IAXRAnchor anchor) {
                 ensureMemoryAlocated();
 
                 var eye = eyeIndex == 1 ? Camera.StereoscopicEye.Right : Camera.StereoscopicEye.Left;
-                var anchorToView = camera.GetStereoViewMatrix(eye) * anchor.worldToAnchorMatrix;
+                var worldToAnchor = anchor?.worldToAnchorMatrix ?? Matrix4x4.identity;
+                var anchorToView = camera.GetStereoViewMatrix(eye) * worldToAnchor.inverse;
                 var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true);
                 
                 writeMatrixToFloatArray(anchorToView, ref anchorViewMatrix);

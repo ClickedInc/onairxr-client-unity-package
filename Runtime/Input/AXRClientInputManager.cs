@@ -4,28 +4,28 @@ using UnityEngine;
 
 namespace onAirXR.Client {
     public class AXRClientInputManager : MonoBehaviour {
-        private AXRClientInputStream _inputStream;
+        internal AXRClientInputStream inputStream { get; private set; }
 
         public void Register(AXRInputSender sender) {
-            _inputStream.RegisterInputSender(sender);
+            inputStream.RegisterInputSender(sender);
         }
 
         public void Unregister(AXRInputSender sender) {
-            _inputStream.UnregisterInputSender(sender);
+            inputStream.UnregisterInputSender(sender);
         }
 
         private void Awake() {
-            _inputStream = new AXRClientInputStream();
+            inputStream = new AXRClientInputStream();
 
             AXRClient.OnMessageReceived += onAXRMessageReceived;
         }
 
         private void Update() {
-            _inputStream.UpdateInputFrame();
+            inputStream.UpdateInputFrame();
         }
 
         private void LateUpdate() {
-            _inputStream.UpdateSenders();
+            inputStream.UpdateSenders();
         }
 
         private void OnDestroy() {
@@ -37,16 +37,16 @@ namespace onAirXR.Client {
 
             switch (message.Name) {
                 case AXRClientMessage.NameSetupResponded:
-                    _inputStream.Init();
+                    inputStream.Init();
                     break;
                 case AXRClientMessage.NamePlayResponded:
-                    _inputStream.Start();
+                    inputStream.Start();
                     break;
                 case AXRClientMessage.NameStopResponded:
-                    _inputStream.Stop();
+                    inputStream.Stop();
                     break;
                 case AXRClientMessage.NameDisconnected:
-                    _inputStream.Cleanup();
+                    inputStream.Cleanup();
                     break;
             }
         }

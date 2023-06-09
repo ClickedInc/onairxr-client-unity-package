@@ -20,13 +20,19 @@ namespace onAirXR.Client {
         Enterprise
     }
 
+    public enum AXRLinkageRequestCase {
+        Default,
+        FirstRequest,
+        UnlinkedByUser
+    }
+
     public class AXRClientStateMachine {
         public interface Context {
             AXRPlatform platform { get; }
             string address { get; }
             bool autoPlay { get; }
 
-            float EvalNextLinkageRequestDelay(bool lazyStart);
+            float EvalNextLinkageRequestDelay(AXRLinkageRequestCase reqcase);
             void RequestGetLinkage(string ipaddr, int port);
             void RequestLink(string ipaddr, int port);
             void RequestPlay();
@@ -82,6 +88,10 @@ namespace onAirXR.Client {
             _state.TriggerPlayResponded();
         }
 
+        public void TriggerUnlinkByUser() {
+            _state.TriggerUnlinkByUser();
+        }
+
         public void TriggerUnlinked() {
             _state.TriggerUnlinked();
         }
@@ -103,6 +113,8 @@ namespace onAirXR.Client {
         }
 
         private abstract class State {
+            private bool _unlinkRequestedByUser;
+
             protected AXRClientStateMachine owner { get; private set; }
             protected Context context => owner._context;
 
@@ -118,14 +130,22 @@ namespace onAirXR.Client {
             public virtual void TriggerLinked() {}
             public virtual void TriggerPlayResponded() {}
 
+            public virtual void TriggerUnlinkByUser() {
+                _unlinkRequestedByUser = true;
+            }
+
             public virtual void TriggerUnlinked() {
                 if (context.autoPlay) {
                     owner.transitTo(owner._stateWaitingForNextLinkageRequest);
-                    owner._stateWaitingForNextLinkageRequest.remainingToRequest = context.EvalNextLinkageRequestDelay(false);
+
+                    var reqcase = _unlinkRequestedByUser ? AXRLinkageRequestCase.UnlinkedByUser : AXRLinkageRequestCase.Default;
+                    owner._stateWaitingForNextLinkageRequest.remainingToRequest = context.EvalNextLinkageRequestDelay(reqcase);
                 }
                 else {
                     owner.transitTo(owner._stateIdle);
                 }
+
+                _unlinkRequestedByUser = false;
             }
 
             public virtual void Update(float deltaTime) { }
@@ -161,7 +181,7 @@ namespace onAirXR.Client {
 
             public override void TriggerStartLinking(float delay) {
                 owner.transitTo(owner._stateWaitingForNextLinkageRequest);
-                owner._stateWaitingForNextLinkageRequest.remainingToRequest = delay > 0 ? delay : context.EvalNextLinkageRequestDelay(true);
+                owner._stateWaitingForNextLinkageRequest.remainingToRequest = delay > 0 ? delay : context.EvalNextLinkageRequestDelay(AXRLinkageRequestCase.FirstRequest);
             }
 
             public override void TriggerUnlinked() {}

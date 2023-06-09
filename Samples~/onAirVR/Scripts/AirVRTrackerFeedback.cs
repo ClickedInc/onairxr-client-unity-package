@@ -10,37 +10,12 @@
 using UnityEngine;
 using onAirXR.Client;
 
-public abstract class AirVRTrackerFeedback : AirVRTrackerFeedbackBase {
-    private Transform _trackingSpace;
-    private Matrix4x4 _trackingLocalToWorldMatrix;
-
-    protected Transform cameraRoot { get; private set; }
-
+public abstract class AirVRTrackerFeedback : AXRInputDeviceFeedbackBase {
     protected abstract OVRInput.Controller ovrController { get; }
 
     protected override bool srcDeviceConnected => AirVROVRInputHelper.IsConnected(ovrController);
 
-    protected override void recalculatePointerRoot() {
-        OVRCameraRig cameraRig = FindObjectOfType<OVRCameraRig>();
-        _trackingSpace = cameraRig != null ? cameraRig.trackingSpace : Camera.main.transform;
-        cameraRoot = cameraRig != null ? cameraRig.transform : _trackingSpace;
-        _trackingLocalToWorldMatrix = Matrix4x4.identity;
-    }
-
-    protected override Matrix4x4 trackingOriginLocalToWorldMatrix {
-        get {
-            if (cameraRoot != null && _trackingSpace != null) {
-                _trackingLocalToWorldMatrix.SetTRS(_trackingSpace.position, cameraRoot.rotation, cameraRoot.localScale);
-                return _trackingLocalToWorldMatrix;
-            }
-            return Matrix4x4.identity;
-        }
-    }
-
     protected override void SetVibration(float frequency, float amplitude) {
         OVRInput.SetControllerVibration(Mathf.Clamp(frequency, 0, 1.0f), Mathf.Clamp(amplitude, 0, 1.0f), ovrController);
     }
-
-    protected override void OnStart() { }
-    protected override void OnUpdate() { }
 }

@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace onAirXR.Client {
     public abstract class AXRTrackedInputDevice : AXRInputSender {
-        protected AXRAnchor anchor { get; private set; }
+        protected IAXRAnchor anchor { get; private set; }
 
-        public AXRTrackedInputDevice(AXRAnchor anchor) {
+        public AXRTrackedInputDevice(IAXRAnchor anchor) {
             this.anchor = anchor;
         }
     }

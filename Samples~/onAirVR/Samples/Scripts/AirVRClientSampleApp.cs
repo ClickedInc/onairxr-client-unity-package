@@ -7,7 +7,7 @@
 
  ***********************************************************/
 
-using System;
+/* using System;
 using System.IO;
 using UnityEngine;
 using onAirXR.Client;
@@ -72,3 +72,4 @@ public class AirVRClientSampleApp : MonoBehaviour, AirVRClient.EventHandler {
 
     public void AirVRClientUserDataReceived(byte[] userData) {}
 }
+ */

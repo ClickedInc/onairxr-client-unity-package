@@ -7,12 +7,17 @@ namespace onAirXR.Client {
         private AXRCameraBase _camera;
         private Transform _head;
 
-        public Pose currentPose => new Pose(
-            anchor.worldToAnchorMatrix.MultiplyPoint(_head.position),
-            anchor.worldToAnchorMatrix.rotation * _head.rotation
-        );
+        public Pose currentPose {
+            get {
+                var worldToAnchor = anchor?.worldToAnchorMatrix ?? Matrix4x4.identity;
+                return new Pose(
+                    worldToAnchor.MultiplyPoint(_head.position),
+                    worldToAnchor.rotation * _head.rotation
+                );
+            }
+        }
 
-        public AXRHeadTrackerInputDevice(AXRCameraBase camera, AXRAnchor anchor, Transform head) : base(anchor) {
+        public AXRHeadTrackerInputDevice(AXRCameraBase camera, IAXRAnchor anchor, Transform head) : base(anchor) {
             _camera = camera;
             _head = head;
         }

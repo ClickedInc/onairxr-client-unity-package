@@ -3,16 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace onAirXR.Client {
-    public class AXRAnchor {
-        public enum Type {
-            AppOrigin,
-            GuardianRelative,
-            AppRelative
-        }
+    public interface IAXRAnchor {
+        Matrix4x4 worldToAnchorMatrix { get; }
+    }
 
-        public Type type => Type.AppOrigin;
-        public Matrix4x4 worldToAnchorMatrix => Matrix4x4.identity;
-        public Vector3 worldPosition => Vector3.zero;
-        public Quaternion worldRotation => Quaternion.identity;
+    public abstract class AXRAnchorComponent : MonoBehaviour, IAXRAnchor {
+        public abstract Matrix4x4 worldToAnchorMatrix { get; }
     }
 }

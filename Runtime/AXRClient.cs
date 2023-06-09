@@ -18,6 +18,7 @@ namespace onAirXR.Client {
             string userid { get; }
             string place { get; }
 
+            void OnPreRequestLink(AXRProfileBase profile);
             void OnLinked();
         }
 
@@ -38,6 +39,8 @@ namespace onAirXR.Client {
                                                                     Application.platform != RuntimePlatform.WindowsPlayer) ||
                                                                    Application.runInBackground == false;
         public static string lastLinkageAddress => _instance?._lastLinkageAddress;
+
+        public static bool volumetric => AXRClientPlugin.IsVolumetric();
 
         public static bool TryParseAddress(string address, out string ipaddr, out int port) {
             ipaddr = null;
@@ -86,7 +89,17 @@ namespace onAirXR.Client {
         }
 
         public static void Unlink() {
+            _instance?._stateMachine?.TriggerUnlinkByUser();
+
             AXRClientPlugin.RequestDisconnect();
+        }
+
+        public static void SetOpacity(float value) {
+            AXRClientPlugin.SetOpacity(value);
+        }
+
+        public static void SetBitrate(int minBps, int startBps, int maxBps) {
+            AXRClientPlugin.SetBitrate(minBps, startBps, maxBps);
         }
 
         private AXREClient _enterpriseClient;
@@ -211,7 +224,7 @@ namespace onAirXR.Client {
         }
 
         private void onAXRStopResponded(AXRClientMessage message) {
-            
+            // do nothing
         }
 
         private void onAXRDisconnected(AXRClientMessage message) {
@@ -232,12 +245,15 @@ namespace onAirXR.Client {
         string AXRClientStateMachine.Context.address => _context.address;
         bool AXRClientStateMachine.Context.autoPlay => _context.autoPlay;
 
-        float AXRClientStateMachine.Context.EvalNextLinkageRequestDelay(bool lazyStart) {
-            if (_context.autoPlay) {
-                return 1.0f + 0.5f * UnityEngine.Random.value;
+        float AXRClientStateMachine.Context.EvalNextLinkageRequestDelay(AXRLinkageRequestCase reqcase) {
+            switch (reqcase) {
+                case AXRLinkageRequestCase.FirstRequest:
+                    return 0.75f;
+                case AXRLinkageRequestCase.UnlinkedByUser:
+                    return 3.0f;
+                default:
+                    return _context.autoPlay ? 1.0f + 0.5f * UnityEngine.Random.value : -1f;
             }
-            
-            return lazyStart ? 0.75f : -1f;
         }
 
         async void AXRClientStateMachine.Context.RequestGetLinkage(string ipaddr, int port) {
@@ -247,7 +263,7 @@ namespace onAirXR.Client {
                 var linkage = await _enterpriseClient.GetLinkage();
                 if (linkage == null) { throw new AXREException(AXREException.Code.NoLinkageAvailable, 0, "not found"); }
 
-                _stateMachine.ConnectLinkage(linkage.address, linkage.port);
+                _stateMachine.ConnectLinkage(linkage.ipaddr, linkage.port);
             }
             catch (Exception e) {
                 Debug.Log($"[onairxr] axrclient: failed to get linkage from {ipaddr}:{port} : {e.Message}");
@@ -258,7 +274,9 @@ namespace onAirXR.Client {
         void AXRClientStateMachine.Context.RequestLink(string ipaddr, int port) {
             _lastLinkageAddress = $"{ipaddr}:{port}";
 
-            _instance._camera.OnPreLink();
+            _context.OnPreRequestLink(_profile);
+            _camera.OnPreLink();
+
             AXRClientPlugin.SetProfile(JsonUtility.ToJson(_profile.GetSerializable()));
 
             AXRClientPlugin.RequestConnect(ipaddr, port);

@@ -124,6 +124,9 @@ namespace onAirXR.Client {
         [DllImport(Name, EntryPoint = "axr_Cleanup")] 
         public static extern void Cleanup();
 
+        [DllImport(Name, EntryPoint = "axr_SetBitrate")]
+        public static extern void SetBitrate(int minBps, int startBps, int maxBps);
+
         [DllImport(Name, EntryPoint = "axr_GetOffscreenFramebufferTexture")]
         public static extern uint GetOffscreenFramebufferTexture();
 
@@ -138,6 +141,9 @@ namespace onAirXR.Client {
 
         [DllImport(Name, EntryPoint = "axr_IsPlaying")] 
         public static extern bool IsPlaying();
+
+        [DllImport(Name, EntryPoint = "axr_IsVolumetric")]
+        public static extern bool IsVolumetric();
 
         [DllImport(Name, EntryPoint = "axr_RequestConnect")] 
         public static extern void RequestConnect(string address, int port);

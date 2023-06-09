@@ -13,6 +13,7 @@ namespace onAirXR.Client {
 
         #pragma warning disable CS0414
         [SerializeField] private string UserID;
+        [SerializeField] private string Place;
         [SerializeField] private string TempPath;
         [SerializeField] private string[] SupportedVideoCodecs;
         [SerializeField] private string[] SupportedAudioCodecs;
@@ -63,61 +64,36 @@ namespace onAirXR.Client {
         public abstract bool isUserPresent { get; }
         public abstract float delayToResumePlayback { get; }
 
-        public virtual float[] videoRenderMeshVertices {
-            get {
-                return new float[] {
-                    -0.5f,  0.5f, 0.0f,
-                    0.5f,  0.5f, 0.0f,
-                    -0.5f, -0.5f, 0.0f,
-                    0.5f, -0.5f, 0.0f
-                };
-            }
-        }
+        public virtual float[] videoRenderMeshVertices => new float[] {
+            -0.5f,  0.5f, 0.0f,
+            0.5f,  0.5f, 0.0f,
+            -0.5f, -0.5f, 0.0f,
+            0.5f, -0.5f, 0.0f
+        };
 
-        public virtual float[] videoRenderMeshTexCoords {
-            get {
-                return new float[] {
-                    0.0f, 1.0f,
-                    1.0f, 1.0f,
-                    0.0f, 0.0f,
-                    1.0f, 0.0f
-                };
-            }
-        }
+        public virtual float[] videoRenderMeshTexCoords => new float[] {
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f
+        };
 
-        public virtual int[] videoRenderMeshIndices {
-            get {
-                return new int[] {
-                    0, 1, 2, 2, 1, 3
-                };
-            }
-        }
-
-        public bool useSeperateVideoRenderTarget {
-            get {
-                return renderType == RenderType.UseSeperateVideoRenderTarget;
-            }
-        }
-
-        public bool useSingleTextureForEyes {
-            get {
-                return renderType == RenderType.UseSeperateVideoRenderTarget;
-            }
-        }
+        public virtual int[] videoRenderMeshIndices => new int[] { 0, 1, 2, 2, 1, 3 };
+        public bool useSeperateVideoRenderTarget => renderType == RenderType.UseSeperateVideoRenderTarget;
+        public bool useSingleTextureForEyes => renderType == RenderType.UseSeperateVideoRenderTarget;
 
         public string userID {
-            get {
-                return UserID;
-            }
-            set {
-                UserID = value;
-            }
+            get { return UserID; }
+            set { UserID = value; }
+        }
+
+        public string place {
+            get { return Place; }
+            set { Place = value; }
         }
 
         public (int width, int height) videoResolution {
-            get {
-                return (VideoWidth, VideoHeight);
-            }
+            get { return (VideoWidth, VideoHeight); }
             set {
                 VideoWidth = value.width;
                 VideoHeight = value.height;
@@ -125,39 +101,23 @@ namespace onAirXR.Client {
         }
 
         public float videoFrameRate {
-            get {
-                return VideoFrameRate > 0 ? VideoFrameRate : defaultVideoFrameRate;
-            }
-            set {
-                VideoFrameRate = value;
-            }
+            get { return VideoFrameRate > 0 ? VideoFrameRate : defaultVideoFrameRate; }
+            set { VideoFrameRate = value; }
         }
 
         public int videoMinBitrate {
-            get {
-                return VideoMinBitrate;
-            }
-            set {
-                VideoMinBitrate = value;
-            }
+            get { return VideoMinBitrate; }
+            set { VideoMinBitrate = value; }
         }
 
         public int videoStartBitrate {
-            get {
-                return VideoStartBitrate;
-            }
-            set {
-                VideoStartBitrate = value;
-            }
+            get { return VideoStartBitrate; }
+            set { VideoStartBitrate = value; }
         }
 
         public int videoMaxBitrate {
-            get {
-                return VideoMaxBitrate;
-            }
-            set {
-                VideoMaxBitrate = value;
-            }
+            get { return VideoMaxBitrate; }
+            set { VideoMaxBitrate = value; }
         }
 
         public AXRProfileBase() {

@@ -93,12 +93,7 @@ namespace onAirXR.Client {
         }
 
         public async Task<AXRELinkage> GetLinkage() {
-            // TODO just for ux development
-            await Task.Delay(3000);
-
-            return new AXRELinkage() { address = "0.0.0.0:56723" };
-
-            /* checkEndpoint();
+            checkEndpoint();
 
             using (var request = AXREApi.GetLinkageRequest(_endpointWithoutPath)) {
                 try {
@@ -117,7 +112,7 @@ namespace onAirXR.Client {
                             throw e;
                     }
                 }
-            } */
+            }
         }
 
         private void checkEndpoint() {

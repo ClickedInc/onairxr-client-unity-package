@@ -15,6 +15,7 @@ namespace onAirXR.Client {
     public abstract class AXRRenderCommand {
         public abstract void Issue(IntPtr renderFuncPtr, int arg);
         public abstract void Issue(IntPtr renderFuncPtr, int arg, IntPtr data);
+        public abstract void SetRenderTarget(RenderTexture renderTarget);
         public abstract void Clear();
     }
 
@@ -34,6 +35,10 @@ namespace onAirXR.Client {
             _commandBuffer.IssuePluginEventAndData(renderFuncPtr, arg, data);
         }
 
+        public override void SetRenderTarget(RenderTexture renderTarget) {
+            _commandBuffer.SetRenderTarget(renderTarget);
+        }
+
         public override void Clear() {
             _commandBuffer.Clear();
         }
@@ -45,6 +50,10 @@ namespace onAirXR.Client {
         }
 
         public override void Issue(IntPtr renderFuncPtr, int arg, IntPtr data) {
+            throw new NotImplementedException();
+        }
+
+        public override void SetRenderTarget(RenderTexture renderTarget) {
             throw new NotImplementedException();
         }
 

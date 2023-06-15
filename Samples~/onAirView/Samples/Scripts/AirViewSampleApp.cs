@@ -12,7 +12,7 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class AirViewSampleApp : MonoBehaviour, AirViewClient.EventHandler {
+/* public class AirViewSampleApp : MonoBehaviour, AirViewClient.EventHandler {
     private AirViewCamera _airViewCamera;
 
     [SerializeField] private string _address = "127.0.0.1";
@@ -81,3 +81,4 @@ public class AirViewSampleApp : MonoBehaviour, AirViewClient.EventHandler {
         Debug.Log("[onAirView] client disconnected");
     }
 }
+ */

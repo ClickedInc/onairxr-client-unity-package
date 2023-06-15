@@ -11,7 +11,60 @@ using System;
 using UnityEngine;
 using onAirXR.Client;
 
-[Serializable]
+public class AirViewProfile : AXRProfileBase {
+    private AirViewCamera _owner;
+    private float[] _cameraProjection;
+
+    public AirViewProfile(AirViewCamera owner) {
+        _owner = owner;
+    }
+
+    // implements AXRProfileBase
+    protected override string[] supportedVideoCodecs => _owner.videoCodecs ?? base.supportedVideoCodecs;
+
+    public override (int width, int height) defaultVideoResolution => _owner.viewportSize;
+
+    public override float defaultVideoFrameRate {
+        get {
+            if (Application.isEditor) { 
+                return 60.0f;
+            }
+            else if (Application.platform == RuntimePlatform.Android) { 
+                return 30.0f; 
+            }
+            else {
+                return Mathf.Max(AXRClientPlugin.GetOptimisticVideoFrameRate(), 60.0f);
+            }
+        }
+    }
+
+    public override bool stereoscopy => _owner.stereoscopic;
+    public override RenderType renderType => RenderType.VideoRenderTextureInScene;
+    public override float[] cameraProjection => _cameraProjection ?? _owner.defaultProjection;
+
+    public override int[] renderViewport {
+        get {
+            var size = _owner.viewportSize;
+            return new int[] { 0, 0, size.width, size.height };
+        }
+    }
+
+    public override float[] leftEyeCameraNearPlane => cameraProjection;
+    public override float ipd => 0.06f;
+    public override int[] leftEyeViewport => renderViewport;
+    public override int[] rightEyeViewport => renderViewport;
+
+    public void SetCameraProjection(float[] projection) {
+        if (projection != null && projection.Length != 4) {
+            Debug.LogError("[ERROR] camera projection must be an array of 4 floats.");
+            return;
+        }
+
+        _cameraProjection = projection;
+    }
+}
+
+/* [Serializable]
 public class AirViewProfile {
     public enum ProfilerMask : int {
         Frame = 0x01,
@@ -188,3 +241,4 @@ public class AirViewProfile {
         CameraProjection = cameraProjection;
     }
 }
+ */

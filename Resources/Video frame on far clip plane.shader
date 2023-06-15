@@ -15,9 +15,12 @@ Shader "onAirXR/Video frame on far clip plane"
 	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
+		Tags { "RenderType"="Transparent" }
 		LOD 100
-        //Cull Off
+        Blend SrcAlpha OneMinusSrcAlpha
+		ZTest Always 
+		Cull Off 
+		ZWrite Off
 
 		Pass
 		{
@@ -48,8 +51,10 @@ Shader "onAirXR/Video frame on far clip plane"
 			{
 				v2f o;
 				o.vertex = v.vertex;
+				
 				float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
-				o.uv = float2(0.5 * (unity_StereoEyeIndex + uv.x), 1.0 - uv.y);
+				o.uv = float2(uv.x, lerp(uv.y, 1 - uv.y, step(0, _ProjectionParams.x)));
+
 				return o;
 			}
 			

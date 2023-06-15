@@ -17,13 +17,14 @@ namespace onAirXR.Client {
         private AXRHeadTrackerInputDevice _headTracker;
         private bool _aboutToDestroy;
         private Vector2 _savedCameraClipPlanes;
-        private GameObject _tinyOpaqueObject;
 
         [SerializeField] private AudioMixerGroup _audioMixerGroup = null;
 
         protected Camera thisCamera => _camera;
+        protected GameObject tinyOpaqueObject { get; private set; }
 
         protected abstract IAXRAnchor anchor { get; }
+        protected virtual RenderTexture videoTexture => null;
 
         public abstract AXRProfileBase profile { get; }
         public abstract float deviceBatteryLevel { get; }
@@ -37,7 +38,7 @@ namespace onAirXR.Client {
             _thisTransform = transform;
             _camera = GetComponent<Camera>();
             _videoRenderer = createVideoRenderer();
-            _volumeRenderer = new VolumeRenderer(_camera);
+            _volumeRenderer = new VolumeRenderer(_camera, profile);
             _audioRenderer = createAudioRenderer();
             _headTracker = new AXRHeadTrackerInputDevice(this, anchor, _thisTransform);
 
@@ -120,26 +121,26 @@ namespace onAirXR.Client {
         }
 
         private void createTinyOpaqueObjectOntoFrustumEdge(Camera camera) {
-            if (_tinyOpaqueObject != null) { return; }
+            if (tinyOpaqueObject != null) { return; }
 
             var prefab = Resources.Load<GameObject>("AXRTinyOpaqueObject");
             if (prefab == null) { return; }
 
-            _tinyOpaqueObject = Instantiate(prefab, camera.transform);
+            tinyOpaqueObject = Instantiate(prefab, camera.transform);
             var frustum = camera.stereoEnabled && camera.stereoTargetEye == StereoTargetEyeMask.Both ? 
                 camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left).decomposeProjection : 
                 camera.projectionMatrix.decomposeProjection;
 
             var y = frustum.bottom / frustum.zNear * frustum.zFar;
-            _tinyOpaqueObject.transform.localPosition = new Vector3(0, y, -frustum.zFar);
-            _tinyOpaqueObject.transform.localRotation = Quaternion.identity;
+            tinyOpaqueObject.transform.localPosition = new Vector3(0, y, -frustum.zFar);
+            tinyOpaqueObject.transform.localRotation = Quaternion.identity;
         }
 
         private void destroyTinyOpaqueObject() {
-            if (_tinyOpaqueObject == null) { return; }
+            if (tinyOpaqueObject == null) { return; }
 
-            Destroy(_tinyOpaqueObject);
-            _tinyOpaqueObject = null;
+            Destroy(tinyOpaqueObject);
+            tinyOpaqueObject = null;
         }
 
         private void onAXRMessageReceived(AXRClientMessage message) {
@@ -229,13 +230,21 @@ namespace onAirXR.Client {
             private void ensureRenderCommandCreated(Camera camera, AXRProfileBase profile) {
                 if (_renderCommand != null) { return; }
 
-                _renderCommand = profile.useSeperateVideoRenderTarget ? new AXRImmediateRenderCommand() :
-                                                                        new AXRCameraEventRenderCommand(camera, CameraEvent.BeforeForwardOpaque);
+                _renderCommand = profile.useSeperateVideoRenderTarget ? 
+                    new AXRImmediateRenderCommand() : 
+                    new AXRCameraEventRenderCommand(camera, CameraEvent.BeforeForwardOpaque);
             }
 
             private void renderFrame(Camera camera, AXRHeadTrackerInputDevice headTracker, AXRProfileBase profile) {
                 if (AXRClient.state == AXRClientState.Playing) {
-                    OnRenderFrame(frameType(camera, _renderedOnce), headTracker, profile, _renderCommand);
+                    if (AXRClient.volumetric) {
+                        OnRenderFrame(frameType(camera, _renderedOnce), headTracker, profile, _renderCommand);
+                    }
+                    else {
+                        AXRClient.RunRenderOnFramebufferTexture(_renderCommand, (renderCommand) => 
+                            OnRenderFrame(frameType(camera, _renderedOnce), headTracker, profile, renderCommand)
+                        );
+                    }
                 }
                 _renderedOnce = true;
             }
@@ -299,13 +308,14 @@ namespace onAirXR.Client {
         }
 
         private class VolumeRenderer {
-            private AXRCameraEventRenderCommand _renderCommand;
+            private AXRRenderCommand _renderCommand;
             private RenderData[] _renderData = new RenderData[2];
             private IntPtr[] _nativeRenderData = new IntPtr[2];
             private int _eyeIndex = 0;
 
-            public VolumeRenderer(Camera camera) {
-                _renderCommand = new AXRCameraEventRenderCommand(camera, CameraEvent.AfterForwardOpaque);
+            public VolumeRenderer(Camera camera, AXRProfileBase profile) {
+                _renderCommand = profile.useSeperateVideoRenderTarget ? new AXRCameraEventRenderCommand(camera, CameraEvent.BeforeForwardOpaque) :
+                                                                        new AXRCameraEventRenderCommand(camera, CameraEvent.AfterForwardOpaque);
             }
 
             public void OnPreRender(Camera camera, IAXRAnchor anchor) {
@@ -314,11 +324,17 @@ namespace onAirXR.Client {
                 _renderData[_eyeIndex].Update(camera, _eyeIndex, anchor);
                 Marshal.StructureToPtr(_renderData[_eyeIndex], _nativeRenderData[_eyeIndex], true);
 
-                AXRClientPlugin.RenderVolume(_renderCommand,
-                                             _eyeIndex == 1 ? AXRClientPlugin.FrameType.StereoRight : AXRClientPlugin.FrameType.StereoLeft,
-                                             _nativeRenderData[_eyeIndex]);
+                var stereoscopic = camera.stereoEnabled && camera.stereoTargetEye == StereoTargetEyeMask.Both;
+                var frameType = stereoscopic == false ? AXRClientPlugin.FrameType.Mono :
+                                _eyeIndex == 1 ? AXRClientPlugin.FrameType.StereoRight : AXRClientPlugin.FrameType.StereoLeft;
 
-                _eyeIndex = 1 - _eyeIndex;
+                AXRClient.RunRenderOnFramebufferTexture(_renderCommand, (renderCommand) =>
+                    AXRClientPlugin.RenderVolume(renderCommand, frameType, _nativeRenderData[_eyeIndex])
+                );
+
+                if (stereoscopic) {
+                    _eyeIndex = 1 - _eyeIndex;
+                }
             }
 
             public void OnPostRender() {

@@ -25,6 +25,9 @@ public class AirVRProfile : AXRProfileBase {
     // NOTE: use 90 fps as upper limit for now
     public override float defaultVideoFrameRate => Application.isEditor ? 60.0f : Mathf.Min(OVRPlugin.systemDisplayFrequency, 90.0f);
     public override bool stereoscopy => true;
+    public override RenderType renderType => RenderType.DirectOnFrameBufferTexture;
+    public override bool isUserPresent => OVRManager.instance.isUserPresent;
+    public override bool isOpenglRenderTextureCoordInEditor => true;
 
     public override float[] leftEyeCameraNearPlane {
         get {
@@ -54,8 +57,6 @@ public class AirVRProfile : AXRProfileBase {
     }
 
     public override float ipd => OVRManager.profile.ipd;
-    public override bool hasInput => true;
-    public override RenderType renderType => RenderType.DirectOnTwoEyeTextures;
 
     public override int[] leftEyeViewport {
         get {
@@ -69,9 +70,6 @@ public class AirVRProfile : AXRProfileBase {
     }
 
     public override int[] rightEyeViewport => leftEyeViewport;
-    public override float[] videoScale => new float[] { 1.0f, 1.0f };
-    public override bool isUserPresent => OVRManager.instance.isUserPresent;
-    public override float delayToResumePlayback => 1.5f;
 
     // deprecated
     public override Vector3 eyeCenterPosition {

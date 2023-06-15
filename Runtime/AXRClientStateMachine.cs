@@ -54,7 +54,7 @@ namespace onAirXR.Client {
 
         public AXRClientState state => _state.type;
 
-        public AXRClientStateMachine(Context context, float delayToResume) {
+        public AXRClientStateMachine(Context context) {
             _stateIdle = new StateIdle(this);
             _stateWaitingForNextLinkageRequest = new StateWaitingForNextLinkageRequest(this);
             _stateRequestingLinkage = new StateRequestingLinkage(this);
@@ -108,7 +108,6 @@ namespace onAirXR.Client {
         }
 
         private void transitTo(State to) {
-            Debug.Log($"[onairxr] client statemachine: transit from {_state.type} to {to.type}");
             _state = to;
         }
 

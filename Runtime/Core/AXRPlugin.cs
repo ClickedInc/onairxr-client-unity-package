@@ -145,6 +145,9 @@ namespace onAirXR.Client {
         [DllImport(Name, EntryPoint = "axr_IsVolumetric")]
         public static extern bool IsVolumetric();
 
+        [DllImport(Name, EntryPoint = "axr_IsTransparent")]
+        public static extern bool IsTransparent();
+
         [DllImport(Name, EntryPoint = "axr_RequestConnect")] 
         public static extern void RequestConnect(string address, int port);
 

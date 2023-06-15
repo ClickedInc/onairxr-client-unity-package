@@ -9,6 +9,8 @@ namespace onAirXR.Client {
         private MeshFilter _meshFilter;
         private MeshRenderer _renderer;
 
+        public RenderTexture texture { get; private set; }
+
         public bool enabled {
             get { return _renderer.enabled; }
             set { _renderer.enabled = value; }
@@ -19,14 +21,13 @@ namespace onAirXR.Client {
             _cameraTransform = camera.transform;
 
             const float Depth = 0.9f;
-            var videoScale = profile.videoScale;
 
             var mesh = new Mesh();
             mesh.vertices = new Vector3[] {
-                new Vector3(-videoScale[0],  videoScale[1], Depth),
-                new Vector3( videoScale[0],  videoScale[1], Depth),
-                new Vector3(-videoScale[0], -videoScale[1], Depth),
-                new Vector3( videoScale[0], -videoScale[1], Depth)
+                new Vector3(-1,  1, Depth),
+                new Vector3( 1,  1, Depth),
+                new Vector3(-1, -1, Depth),
+                new Vector3( 1, -1, Depth)
             };
             mesh.uv = new Vector2[] {
                 new Vector2(0.0f, 0.0f),
@@ -53,8 +54,28 @@ namespace onAirXR.Client {
             _renderer.enabled = false;
         }
 
-        public void SetVideoFrameTexture(Texture2D texture) {
+        public void Start(AXRProfileBase profile) {
+            if (texture != null) { return; }
+
+            texture = new RenderTexture(profile.videoResolution.width, profile.videoResolution.height, 0, RenderTextureFormat.ARGB32);
+            texture.useMipMap = false;
+            texture.autoGenerateMips = false;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.anisoLevel = 0;
+            texture.Create();
+
             _renderer.material.mainTexture = texture;
+            enabled = true;
+        }
+
+        public void Stop() {
+            if (texture == null) { return; }
+
+            enabled = false;
+            _renderer.material.mainTexture = null;
+
+            texture.Release();
+            texture = null;
         }
 
         public void LateUpdate() {

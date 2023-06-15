@@ -7,8 +7,8 @@ namespace onAirXR.Client {
     [Serializable]
     public abstract class AXRProfileBase {
         public enum RenderType {
-            DirectOnTwoEyeTextures,
-            UseSeperateVideoRenderTarget
+            DirectOnFrameBufferTexture,
+            VideoRenderTextureInScene
         }
 
         #pragma warning disable CS0414
@@ -23,19 +23,43 @@ namespace onAirXR.Client {
         [SerializeField] private int VideoMinBitrate;
         [SerializeField] private int VideoStartBitrate;
         [SerializeField] private int VideoMaxBitrate;
-        [SerializeField] private float IPD;
         [SerializeField] private bool Stereoscopy;
-        [SerializeField] private float[] LeftEyeCameraNearPlane;
-        [SerializeField] private Vector3 EyeCenterPosition;
+        [SerializeField] private float[] VideoScale;
 
+        // for stereosopic
+        [SerializeField] private float[] LeftEyeCameraNearPlane;        
+        [SerializeField] private float IPD;
         [SerializeField] private int[] LeftEyeViewport;
         [SerializeField] private int[] RightEyeViewport;
-        [SerializeField] private float[] VideoScale;
+
+        // for monoscopic
+        [SerializeField] private float[] CameraProjection;
+        [SerializeField] private int[] RenderViewport;
+
+        // deprecated
+        [SerializeField] private Vector3 EyeCenterPosition;
 #pragma warning restore CS0414
 
-        private string[] supportedVideoCodecs => AXRClientPlugin.GetSupportedVideoCodecs();
-        private string[] supportedAudioCodecs => AXRClientPlugin.GetSupportedAudioCodecs();
+        protected virtual string[] supportedVideoCodecs => AXRClientPlugin.GetSupportedVideoCodecs();
+        protected virtual string[] supportedAudioCodecs => AXRClientPlugin.GetSupportedAudioCodecs();
+        
+        public abstract (int width, int height) defaultVideoResolution { get; }
+        public abstract float defaultVideoFrameRate { get; }
+        public abstract bool stereoscopy { get; }
+        public abstract RenderType renderType { get; }
 
+        public virtual bool hasInput => true;
+        public virtual bool isUserPresent => true;
+        public virtual bool isOpenglRenderTextureCoordInEditor => false;
+        public virtual float[] videoScale => new float[] { 1.0f, 1.0f }; // ratio of the size of the whole video rendered to the size of the area visible to an eye camera
+
+        // for stereoscopic
+        public virtual float[] leftEyeCameraNearPlane => null;
+        public virtual float ipd => 0.0f;
+        public virtual int[] leftEyeViewport => null;
+        public virtual int[] rightEyeViewport => null;
+
+        /*
         private float[] leftEyeCameraNearPlaneScaled {
             get {
                 float[] result = leftEyeCameraNearPlane;
@@ -48,21 +72,11 @@ namespace onAirXR.Client {
                 return result;
             }
         }
+        */
 
-        public abstract (int width, int height) defaultVideoResolution { get; }
-        public abstract float defaultVideoFrameRate { get; }
-        public abstract bool stereoscopy { get; }
-        public abstract float[] leftEyeCameraNearPlane { get; }
-        public abstract float ipd { get; }
-        public abstract bool hasInput { get; }
-
-        public abstract RenderType renderType { get; }
-        public abstract int[] leftEyeViewport { get; }
-        public abstract int[] rightEyeViewport { get; }
-        public abstract float[] videoScale { get; }   // ratio of the size of the whole video rendered to the size of the area visible to an eye camera
-
-        public abstract bool isUserPresent { get; }
-        public abstract float delayToResumePlayback { get; }
+        // for monoscopic
+        public virtual float[] cameraProjection => null;
+        public virtual int[] renderViewport => null;
 
         public virtual float[] videoRenderMeshVertices => new float[] {
             -0.5f,  0.5f, 0.0f,
@@ -79,8 +93,8 @@ namespace onAirXR.Client {
         };
 
         public virtual int[] videoRenderMeshIndices => new int[] { 0, 1, 2, 2, 1, 3 };
-        public bool useSeperateVideoRenderTarget => renderType == RenderType.UseSeperateVideoRenderTarget;
-        public bool useSingleTextureForEyes => renderType == RenderType.UseSeperateVideoRenderTarget;
+        public bool useSeperateVideoRenderTarget => renderType == RenderType.VideoRenderTextureInScene;
+        public bool useSingleTextureForEyes => renderType == RenderType.VideoRenderTextureInScene;
 
         public string userID {
             get { return UserID; }
@@ -127,13 +141,7 @@ namespace onAirXR.Client {
         public AXRProfileBase GetSerializable() {
             SupportedVideoCodecs = supportedVideoCodecs;
             SupportedAudioCodecs = supportedAudioCodecs;
-            IPD = ipd;
             Stereoscopy = stereoscopy;
-            LeftEyeCameraNearPlane = leftEyeCameraNearPlane;
-            EyeCenterPosition = eyeCenterPosition;
-
-            LeftEyeViewport = leftEyeViewport;
-            RightEyeViewport = rightEyeViewport;
             VideoScale = videoScale;
 
             if (VideoWidth <= 0 || VideoHeight <= 0) {
@@ -144,6 +152,16 @@ namespace onAirXR.Client {
             if (VideoFrameRate <= 0.0f) {
                 VideoFrameRate = defaultVideoFrameRate;
             }
+
+            LeftEyeCameraNearPlane = leftEyeCameraNearPlane;
+            EyeCenterPosition = eyeCenterPosition;
+            IPD = ipd;
+            LeftEyeViewport = leftEyeViewport;
+            RightEyeViewport = rightEyeViewport;
+
+            CameraProjection = cameraProjection;
+            RenderViewport = renderViewport;
+
             return this;
         }
 
@@ -176,6 +194,6 @@ namespace onAirXR.Client {
         }
 
         // deprecated: unused anymore because it is only for 3-DOF tracking
-        public abstract Vector3 eyeCenterPosition { get; }
+        public virtual Vector3 eyeCenterPosition => Vector3.zero;
     }
 }

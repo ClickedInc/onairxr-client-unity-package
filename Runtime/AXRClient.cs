@@ -41,6 +41,7 @@ namespace onAirXR.Client {
         public static string lastLinkageAddress => _instance?._lastLinkageAddress;
 
         public static bool volumetric => AXRClientPlugin.IsVolumetric();
+        public static bool transparent => AXRClientPlugin.IsTransparent();
 
         public static bool TryParseAddress(string address, out string ipaddr, out int port) {
             ipaddr = null;
@@ -102,6 +103,33 @@ namespace onAirXR.Client {
             AXRClientPlugin.SetBitrate(minBps, startBps, maxBps);
         }
 
+        public static void RunRenderOnFramebufferTexture(AXRRenderCommand renderCommand, Action<AXRRenderCommand> action) {
+            if (_instance == null) { return; }
+
+            var framebufferTexture = _instance._underlayVideoRenderer?.texture;
+            if (framebufferTexture == null) {
+                action?.Invoke(renderCommand);
+                return;
+            }
+
+            var prevActive = RenderTexture.active;
+            
+            if (renderCommand is AXRImmediateRenderCommand) {
+                RenderTexture.active = framebufferTexture;
+                {
+                    action?.Invoke(renderCommand);
+                }
+                RenderTexture.active = prevActive;
+            }
+            else {
+                renderCommand.SetRenderTarget(framebufferTexture);
+                {
+                    action?.Invoke(renderCommand);
+                }
+                renderCommand.SetRenderTarget(prevActive);
+            }
+        }
+
         private AXREClient _enterpriseClient;
         private AXRProfileBase _profile;
         private AXRCameraBase _camera;
@@ -134,7 +162,7 @@ namespace onAirXR.Client {
             if (result < 0 && result != -4) { return; }
             
             _configured = true;
-            _stateMachine = new AXRClientStateMachine(this, _profile.delayToResumePlayback);
+            _stateMachine = new AXRClientStateMachine(this);
         }
 
         private void Update() {
@@ -158,8 +186,7 @@ namespace onAirXR.Client {
 
         private bool isOpenglRenderTextureCoord() {
 #if UNITY_EDITOR
-            // NOTE: assumes that only Android build target is set to OpenGLES
-            return EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android;
+            return _profile.isOpenglRenderTextureCoordInEditor;
 #else
             switch (SystemInfo.graphicsDeviceType) {
                 case GraphicsDeviceType.OpenGL2:
@@ -208,12 +235,7 @@ namespace onAirXR.Client {
         }
 
         private void onAXRRenderPrepared(AXRClientMessage message) {
-            if (_underlayVideoRenderer != null &&
-                AXRClientPlugin.GetVideoRenderTargetTexture(out var nativeTex, out var width, out var height)) {
-                var texture = Texture2D.CreateExternalTexture(width, height, TextureFormat.RGBA32, false, false, nativeTex);
-                _underlayVideoRenderer.SetVideoFrameTexture(texture);
-                _underlayVideoRenderer.enabled = true;
-            }
+            _underlayVideoRenderer?.Start(_profile);
 
             _stateMachine?.TriggerLinked(); 
             _context.OnLinked();
@@ -228,10 +250,7 @@ namespace onAirXR.Client {
         }
 
         private void onAXRDisconnected(AXRClientMessage message) {
-            if (_underlayVideoRenderer != null) {
-                _underlayVideoRenderer.SetVideoFrameTexture(null);
-                _underlayVideoRenderer.enabled = false;
-            }
+            _underlayVideoRenderer?.Stop();
 
             _stateMachine?.TriggerUnlinked();
         }

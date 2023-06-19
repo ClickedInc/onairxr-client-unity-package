@@ -303,15 +303,19 @@ namespace onAirXR.Client {
         public static void Load() {}
         public static int Configure(int audioOutputSampleRate, bool hasInput, bool openglRenderTextureCoord) { return -1; }
         public static void Cleanup() { }
+        public static void SetBitrate(int minBps, int startBps, int maxBps) {}
         public static void EnableCopyrightCheck(bool enable) { }
         public static void SetProfile(string profile) { }
         public static bool IsConnected() { return false; }
         public static bool IsPlaying() { return false; }
+        public static bool IsVolumetric() { return false; }
+        public static bool IsTransparent() { return false; }
         public static void RequestConnect(string address, int port) { }
         public static void RequestDisconnect() { }
         public static void RequestPlay() { }
         public static void RequestStop() { }
         public static void RequestSendUserData(byte[] data) { }
+        public static void SetCameraPose(Pose pose, ref int viewNumber) {}
 
         public static bool CheckMessageQueue(out IntPtr source, out IntPtr data, out int length) {
             source = default;
@@ -332,6 +336,7 @@ namespace onAirXR.Client {
         public static void PreRenderVideoFrame(int viewNumber) { }
         public static void RenderVideoFrame(AXRRenderCommand renderCommand, FrameType frameType, bool clearColor = true, bool renderOnTexture = false) { }
         public static void EndRenderVideoFrame() { }
+        public static void RenderVolume(AXRRenderCommand renderCommand, FrameType frameType, IntPtr data) {}
         public static bool GetAudioData(float[] buffer, int length, int channels) { return false; }
         public static void BeginPendInput(ref long timestamp) { }
         public static void PendInputState(byte device, byte control, byte state) { }

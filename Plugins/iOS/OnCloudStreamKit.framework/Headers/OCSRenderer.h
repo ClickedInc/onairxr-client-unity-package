@@ -10,7 +10,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithDevice:(id<MTLDevice>)device pixelFormat:(MTLPixelFormat)pixelFormat;
 - (void)convertToTexture:(CVImageBufferRef)imageBuffer;
 - (void)setRenderAspect:(float)aspect;
-- (void)renderToEncoder:(id<MTLRenderCommandEncoder>)renderEncoder flip:(BOOL)flip;
+- (void)setOpacity:(float)opacity;
+- (void)renderToEncoder:(id<MTLRenderCommandEncoder>)renderEncoder flip:(BOOL)flip videoColorSpaceLinear:(BOOL)linear;
 
 @end
 

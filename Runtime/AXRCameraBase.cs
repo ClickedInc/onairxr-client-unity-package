@@ -325,7 +325,7 @@ namespace onAirXR.Client {
                                                   AXRProfileBase profile, 
                                                   AXRRenderCommand renderCommand) {
                 // Currently, iOS supports monoscopic video only
-                AXRClientPlugin.RenderVideoFrame(renderCommand, AXRClientPlugin.FrameType.Mono);
+                AXRClientPlugin.RenderVideoFrame(renderCommand, AXRClientPlugin.FrameType.Mono, true, true);
             }
 
             protected override void OnFinishRenderFrame() {}

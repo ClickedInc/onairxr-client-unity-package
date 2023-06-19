@@ -197,6 +197,7 @@ namespace onAirXR.Client {
                 case GraphicsDeviceType.OpenGLES2:
                 case GraphicsDeviceType.OpenGLES3:
                 case GraphicsDeviceType.OpenGLCore:
+                case GraphicsDeviceType.Metal:
                     return true;
                 default:
                     return false;

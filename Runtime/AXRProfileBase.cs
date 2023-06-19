@@ -51,6 +51,7 @@ namespace onAirXR.Client {
         public virtual bool hasInput => true;
         public virtual bool isUserPresent => true;
         public virtual bool isOpenglRenderTextureCoordInEditor => false;
+        public virtual bool useDedicatedRenderCamera => false;
         public virtual float[] videoScale => new float[] { 1.0f, 1.0f }; // ratio of the size of the whole video rendered to the size of the area visible to an eye camera
 
         // for stereoscopic

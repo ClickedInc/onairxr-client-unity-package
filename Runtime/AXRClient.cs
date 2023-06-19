@@ -103,11 +103,15 @@ namespace onAirXR.Client {
             AXRClientPlugin.SetBitrate(minBps, startBps, maxBps);
         }
 
-        public static void RunRenderOnFramebufferTexture(AXRRenderCommand renderCommand, Action<AXRRenderCommand> action) {
+        public static void RunRenderOnFramebufferTexture(AXRRenderCamera renderCamera, AXRRenderCommand renderCommand, Action<AXRRenderCommand> action) {
             if (_instance == null) { return; }
 
             var framebufferTexture = _instance._underlayVideoRenderer?.texture;
-            if (framebufferTexture == null) {
+            if (renderCamera.dedicated) {
+                renderCamera.targetTexture = framebufferTexture;
+            }
+            
+            if (renderCamera.dedicated || framebufferTexture == null) {
                 action?.Invoke(renderCommand);
                 return;
             }

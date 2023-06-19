@@ -40,6 +40,8 @@ public class AirViewProfile : AXRProfileBase {
 
     public override bool stereoscopy => _owner.stereoscopic;
     public override RenderType renderType => RenderType.VideoRenderTextureInScene;
+    public override bool useDedicatedRenderCamera => Application.isEditor == false && Application.platform == RuntimePlatform.IPhonePlayer;
+
     public override float[] cameraProjection => _cameraProjection ?? _owner.defaultProjection;
 
     public override int[] renderViewport {

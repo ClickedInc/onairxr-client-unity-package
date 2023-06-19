@@ -26,6 +26,8 @@ namespace onAirXR.Client {
         protected abstract IAXRAnchor anchor { get; }
         protected virtual RenderTexture videoTexture => null;
 
+        public float depth => _camera.depth;
+
         public abstract AXRProfileBase profile { get; }
         public abstract float deviceBatteryLevel { get; }
 
@@ -38,7 +40,7 @@ namespace onAirXR.Client {
             _thisTransform = transform;
             _camera = GetComponent<Camera>();
             _videoRenderer = createVideoRenderer();
-            _volumeRenderer = new VolumeRenderer(_camera, profile);
+            _volumeRenderer = new VolumeRenderer(_camera, profile, _videoRenderer);
             _audioRenderer = createAudioRenderer();
             _headTracker = new AXRHeadTrackerInputDevice(this, anchor, _thisTransform);
 
@@ -61,13 +63,13 @@ namespace onAirXR.Client {
             OnPostStart(anchor);
         }
 
-        protected virtual void OnPreRender() {
-            _videoRenderer.OnPreRender(_camera, _headTracker, profile);
-            _volumeRenderer.OnPreRender(_camera, anchor);
+        public virtual void PreRender(Camera camera) {
+            _videoRenderer.OnPreRender(camera, _headTracker, profile);
+            _volumeRenderer.OnPreRender(camera, anchor);
         }
 
-        protected virtual void OnPostRender() {
-            _videoRenderer.OnPostRender(_camera, _headTracker, profile);
+        public virtual void PostRender(Camera camera) {
+            _videoRenderer.OnPostRender(camera, _headTracker, profile);
             _volumeRenderer.OnPostRender();
         }
 
@@ -82,11 +84,11 @@ namespace onAirXR.Client {
 
         private VideoRenderer createVideoRenderer() {
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            return new WindowsVideoRenderer();
+            return new WindowsVideoRenderer(this, profile);
 #elif !UNITY_EDITOR && UNITY_ANDROID
-            return new AndroidVideoRenderer();
+            return new AndroidVideoRenderer(this, profile);
 #elif !UNITY_EDITOR && UNITY_IOS
-            return new IOSVideoRenderer();
+            return new IOSVideoRenderer(this, profile);
 #else
             return null;
 #endif
@@ -193,6 +195,22 @@ namespace onAirXR.Client {
             private AXRRenderCommand _renderCommand;
             private bool _renderedOnce;
 
+            public AXRRenderCamera renderCamera { get; private set; }
+
+            public VideoRenderer(AXRCameraBase owner, AXRProfileBase profile) {
+                var go = owner.gameObject;
+                if (profile.useDedicatedRenderCamera) {
+                    go = new GameObject("RenderCamera");
+                    go.transform.SetParent(owner.transform, false);
+                    go.transform.localPosition = Vector3.zero;
+                    go.transform.localRotation = Quaternion.identity;
+                    go.transform.localScale = Vector3.one;
+                }
+                
+                renderCamera = go.AddComponent<AXRRenderCamera>();
+                renderCamera.Configure(owner);
+            }
+
             public void OnPreRender(Camera camera, AXRHeadTrackerInputDevice headTracker, AXRProfileBase profile) {
                 ensureRenderCommandCreated(camera, profile);
                 if ((_renderCommand is AXRCameraEventRenderCommand) == false) { return; }
@@ -241,7 +259,7 @@ namespace onAirXR.Client {
                         OnRenderFrame(frameType(camera, _renderedOnce), headTracker, profile, _renderCommand);
                     }
                     else {
-                        AXRClient.RunRenderOnFramebufferTexture(_renderCommand, (renderCommand) => 
+                        AXRClient.RunRenderOnFramebufferTexture(renderCamera, _renderCommand, (renderCommand) => 
                             OnRenderFrame(frameType(camera, _renderedOnce), headTracker, profile, renderCommand)
                         );
                     }
@@ -260,6 +278,8 @@ namespace onAirXR.Client {
 
         private class AndroidVideoRenderer : VideoRenderer {
             private int _viewNumber;
+
+            public AndroidVideoRenderer(AXRCameraBase owner, AXRProfileBase profile) : base(owner, profile) { }
 
             protected override void OnRenderFrame(AXRClientPlugin.FrameType type, 
                                                   AXRHeadTrackerInputDevice headTracker, 
@@ -284,6 +304,8 @@ namespace onAirXR.Client {
         }
 
         private class WindowsVideoRenderer : VideoRenderer {
+            public WindowsVideoRenderer(AXRCameraBase owner, AXRProfileBase profile) : base(owner, profile) { }
+
             protected override void OnRenderFrame(AXRClientPlugin.FrameType type, 
                                                   AXRHeadTrackerInputDevice headTracker, 
                                                   AXRProfileBase profile, 
@@ -296,6 +318,8 @@ namespace onAirXR.Client {
         }
 
         private class IOSVideoRenderer : VideoRenderer {
+            public IOSVideoRenderer(AXRCameraBase owner, AXRProfileBase profile) : base(owner, profile) { }
+
             protected override void OnRenderFrame(AXRClientPlugin.FrameType type, 
                                                   AXRHeadTrackerInputDevice headTracker, 
                                                   AXRProfileBase profile, 
@@ -308,12 +332,14 @@ namespace onAirXR.Client {
         }
 
         private class VolumeRenderer {
+            private VideoRenderer _videoRenderer;
             private AXRRenderCommand _renderCommand;
             private RenderData[] _renderData = new RenderData[2];
             private IntPtr[] _nativeRenderData = new IntPtr[2];
             private int _eyeIndex = 0;
 
-            public VolumeRenderer(Camera camera, AXRProfileBase profile) {
+            public VolumeRenderer(Camera camera, AXRProfileBase profile, VideoRenderer videoRenderer) {
+                _videoRenderer = videoRenderer;
                 _renderCommand = profile.useSeperateVideoRenderTarget ? new AXRCameraEventRenderCommand(camera, CameraEvent.BeforeForwardOpaque) :
                                                                         new AXRCameraEventRenderCommand(camera, CameraEvent.AfterForwardOpaque);
             }
@@ -328,7 +354,7 @@ namespace onAirXR.Client {
                 var frameType = stereoscopic == false ? AXRClientPlugin.FrameType.Mono :
                                 _eyeIndex == 1 ? AXRClientPlugin.FrameType.StereoRight : AXRClientPlugin.FrameType.StereoLeft;
 
-                AXRClient.RunRenderOnFramebufferTexture(_renderCommand, (renderCommand) =>
+                AXRClient.RunRenderOnFramebufferTexture(_videoRenderer.renderCamera, _renderCommand, (renderCommand) =>
                     AXRClientPlugin.RenderVolume(renderCommand, frameType, _nativeRenderData[_eyeIndex])
                 );
 

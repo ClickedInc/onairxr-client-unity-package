@@ -33,7 +33,7 @@ public class AirViewProfile : AXRProfileBase {
                 return 30.0f; 
             }
             else {
-                return Mathf.Max(AXRClientPlugin.GetOptimisticVideoFrameRate(), 60.0f);
+                return Mathf.Min(AXRClientPlugin.GetOptimisticVideoFrameRate(), 60.0f);
             }
         }
     }

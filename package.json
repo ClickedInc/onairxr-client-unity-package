@@ -1,6 +1,6 @@
 {
     "name": "com.onairxr.client",
-    "version": "3.0.2",
+    "version": "3.1.0",
     "displayName": "onAirXR Client",
     "description": "",
     "unity": "2020.1",
@@ -23,10 +23,5 @@
         "displayName": "onAirView",
         "description": "",
         "path": "Samples~/onAirView"
-    },
-    {
-        "displayName": "Multicast Sample",
-        "description": "",
-        "path": "Samples~/Multicast"
     }]
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -155,7 +156,7 @@ namespace onAirXR.Client {
                     context.RequestGetLinkage(ipaddr, port);
                 }
                 else {
-                    throw new UnityException("Invalid Address");
+                    throw new UnityException("onairxr-invalid-address");
                 }
             }
 
@@ -164,7 +165,7 @@ namespace onAirXR.Client {
                     RequestLink(ipaddr, port);
                 }
                 else {
-                    throw new UnityException("Invalid Address");
+                    throw new UnityException("onairxr-invalid-address");
                 }
             }
 
@@ -212,7 +213,12 @@ namespace onAirXR.Client {
                             break;
                     }
                 }
-                catch (UnityException e) {
+                catch (Exception e) {
+                    if ((e as UnityException)?.Message?.Equals("onairxr-invalid-address") ?? false) {
+                        remainingToRequest = 1.0f;
+                        return;
+                    }
+
                     owner.transitTo(owner._stateError);
                     owner._stateError.error = e.Message;
                 }

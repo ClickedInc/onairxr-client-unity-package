@@ -23,7 +23,7 @@ public class AirVRProfile : AXRProfileBase {
     }
 
     // NOTE: use 90 fps as upper limit for now
-    public override float defaultVideoFrameRate => Application.isEditor ? 60.0f : Mathf.Min(OVRPlugin.systemDisplayFrequency, 90.0f);
+    public override float defaultVideoFrameRate => Application.isEditor ? 60.0f : Mathf.Min(OVRManager.display?.displayFrequency ?? 60.0f, 90.0f);
     public override bool stereoscopy => true;
     public override RenderType renderType => RenderType.DirectOnFrameBufferTexture;
     public override bool isUserPresent => OVRManager.instance.isUserPresent;

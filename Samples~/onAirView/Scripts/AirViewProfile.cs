@@ -20,11 +20,9 @@ public class AirViewProfile : AXRProfileBase {
     }
 
     // implements AXRProfileBase
-    protected override string[] supportedVideoCodecs => _owner.videoCodecs ?? base.supportedVideoCodecs;
+    protected override (int width, int height) defaultVideoResolution => _owner.viewportSize;
 
-    public override (int width, int height) defaultVideoResolution => _owner.viewportSize;
-
-    public override float defaultVideoFrameRate {
+    protected override float defaultVideoFrameRate {
         get {
             if (Application.isEditor) { 
                 return 60.0f;
@@ -38,23 +36,24 @@ public class AirViewProfile : AXRProfileBase {
         }
     }
 
-    public override bool stereoscopy => _owner.stereoscopic;
-    public override RenderType renderType => RenderType.VideoRenderTextureInScene;
-    public override bool useDedicatedRenderCamera => Application.isEditor == false && Application.platform == RuntimePlatform.IPhonePlayer;
+    protected override bool stereoscopy => _owner.stereoscopic;
+    protected override RenderType renderType => RenderType.VideoRenderTextureInScene;
+    protected override string[] supportedVideoCodecs => _owner.videoCodecs ?? base.supportedVideoCodecs;
+    protected override bool useDedicatedRenderCamera => Application.isEditor == false && Application.platform == RuntimePlatform.IPhonePlayer;
 
-    public override float[] cameraProjection => _cameraProjection ?? _owner.defaultProjection;
+    protected override float[] cameraProjection => _cameraProjection ?? _owner.defaultProjection;
 
-    public override int[] renderViewport {
+    protected override int[] renderViewport {
         get {
             var size = _owner.viewportSize;
             return new int[] { 0, 0, size.width, size.height };
         }
     }
 
-    public override float[] leftEyeCameraNearPlane => cameraProjection;
-    public override float ipd => 0.06f;
-    public override int[] leftEyeViewport => renderViewport;
-    public override int[] rightEyeViewport => renderViewport;
+    protected override float[] leftEyeCameraNearPlane => cameraProjection;
+    protected override float ipd => 0.06f;
+    protected override int[] leftEyeViewport => renderViewport;
+    protected override int[] rightEyeViewport => renderViewport;
 
     public void SetCameraProjection(float[] projection) {
         if (projection != null && projection.Length != 4) {

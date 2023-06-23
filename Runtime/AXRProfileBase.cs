@@ -40,25 +40,29 @@ namespace onAirXR.Client {
         [SerializeField] private Vector3 EyeCenterPosition;
 #pragma warning restore CS0414
 
+        protected abstract (int width, int height) defaultVideoResolution { get; }
+        protected abstract float defaultVideoFrameRate { get; }
+        protected abstract bool stereoscopy { get; }
+        protected abstract RenderType renderType { get; }
+
         protected virtual string[] supportedVideoCodecs => AXRClientPlugin.GetSupportedVideoCodecs();
         protected virtual string[] supportedAudioCodecs => AXRClientPlugin.GetSupportedAudioCodecs();
-        
-        public abstract (int width, int height) defaultVideoResolution { get; }
-        public abstract float defaultVideoFrameRate { get; }
-        public abstract bool stereoscopy { get; }
-        public abstract RenderType renderType { get; }
+        protected virtual bool hasInput => true;
+        protected virtual bool isUserPresent => true;
+        protected virtual bool isOpenglRenderTextureCoordInEditor => false;
+        protected virtual bool useDedicatedRenderCamera => false;
+        protected virtual float[] videoScale => new float[] { 1.0f, 1.0f }; // ratio of the size of the whole video rendered to the size of the area visible to an eye camera
 
-        public virtual bool hasInput => true;
-        public virtual bool isUserPresent => true;
-        public virtual bool isOpenglRenderTextureCoordInEditor => false;
-        public virtual bool useDedicatedRenderCamera => false;
-        public virtual float[] videoScale => new float[] { 1.0f, 1.0f }; // ratio of the size of the whole video rendered to the size of the area visible to an eye camera
+        internal bool propHasInput => hasInput;
+        internal bool propIsUserPresent => isUserPresent;
+        internal bool propIsOpenglRenderTextureCoordInEditor => isOpenglRenderTextureCoordInEditor;
+        internal bool propUseDedicatedRenderCamera => false;
 
         // for stereoscopic
-        public virtual float[] leftEyeCameraNearPlane => null;
-        public virtual float ipd => 0.0f;
-        public virtual int[] leftEyeViewport => null;
-        public virtual int[] rightEyeViewport => null;
+        protected virtual float[] leftEyeCameraNearPlane => null;
+        protected virtual float ipd => 0.0f;
+        protected virtual int[] leftEyeViewport => null;
+        protected virtual int[] rightEyeViewport => null;
 
         /*
         private float[] leftEyeCameraNearPlaneScaled {
@@ -76,26 +80,11 @@ namespace onAirXR.Client {
         */
 
         // for monoscopic
-        public virtual float[] cameraProjection => null;
-        public virtual int[] renderViewport => null;
+        protected virtual float[] cameraProjection => null;
+        protected virtual int[] renderViewport => null;
 
-        public virtual float[] videoRenderMeshVertices => new float[] {
-            -0.5f,  0.5f, 0.0f,
-            0.5f,  0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f
-        };
-
-        public virtual float[] videoRenderMeshTexCoords => new float[] {
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            0.0f, 0.0f,
-            1.0f, 0.0f
-        };
-
-        public virtual int[] videoRenderMeshIndices => new int[] { 0, 1, 2, 2, 1, 3 };
-        public bool useSeperateVideoRenderTarget => renderType == RenderType.VideoRenderTextureInScene;
-        public bool useSingleTextureForEyes => renderType == RenderType.VideoRenderTextureInScene;
+        internal bool useSeperateVideoRenderTarget => renderType == RenderType.VideoRenderTextureInScene;
+        internal bool useSingleTextureForEyes => renderType == RenderType.VideoRenderTextureInScene;
 
         public string userID {
             get { return UserID; }
@@ -139,33 +128,6 @@ namespace onAirXR.Client {
             TempPath = Application.persistentDataPath;
         }
 
-        public AXRProfileBase GetSerializable() {
-            SupportedVideoCodecs = supportedVideoCodecs;
-            SupportedAudioCodecs = supportedAudioCodecs;
-            Stereoscopy = stereoscopy;
-            VideoScale = videoScale;
-
-            if (VideoWidth <= 0 || VideoHeight <= 0) {
-                var res = defaultVideoResolution;
-                VideoWidth = res.width;
-                VideoHeight = res.height;
-            }
-            if (VideoFrameRate <= 0.0f) {
-                VideoFrameRate = defaultVideoFrameRate;
-            }
-
-            LeftEyeCameraNearPlane = leftEyeCameraNearPlane;
-            EyeCenterPosition = eyeCenterPosition;
-            IPD = ipd;
-            LeftEyeViewport = leftEyeViewport;
-            RightEyeViewport = rightEyeViewport;
-
-            CameraProjection = cameraProjection;
-            RenderViewport = renderViewport;
-
-            return this;
-        }
-
         public override string ToString() {
             var resolution = videoResolution;
 
@@ -194,7 +156,34 @@ namespace onAirXR.Client {
                                  stereoscopy);
         }
 
+        internal AXRProfileBase GetSerializable() {
+            SupportedVideoCodecs = supportedVideoCodecs;
+            SupportedAudioCodecs = supportedAudioCodecs;
+            Stereoscopy = stereoscopy;
+            VideoScale = videoScale;
+
+            if (VideoWidth <= 0 || VideoHeight <= 0) {
+                var res = defaultVideoResolution;
+                VideoWidth = res.width;
+                VideoHeight = res.height;
+            }
+            if (VideoFrameRate <= 0.0f) {
+                VideoFrameRate = defaultVideoFrameRate;
+            }
+
+            LeftEyeCameraNearPlane = leftEyeCameraNearPlane;
+            EyeCenterPosition = eyeCenterPosition;
+            IPD = ipd;
+            LeftEyeViewport = leftEyeViewport;
+            RightEyeViewport = rightEyeViewport;
+
+            CameraProjection = cameraProjection;
+            RenderViewport = renderViewport;
+
+            return this;
+        }
+
         // deprecated: unused anymore because it is only for 3-DOF tracking
-        public virtual Vector3 eyeCenterPosition => Vector3.zero;
+        protected virtual Vector3 eyeCenterPosition => Vector3.zero;
     }
 }

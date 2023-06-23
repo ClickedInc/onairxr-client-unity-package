@@ -15,8 +15,6 @@ namespace onAirXR.Client {
             AXRPlatform platform { get; }
             bool autoPlay { get; }
             string address { get; }
-            string userid { get; }
-            string place { get; }
 
             void OnPreRequestLink(AXRProfileBase profile);
             void OnLinked();
@@ -26,22 +24,41 @@ namespace onAirXR.Client {
         private static Context _context;
         private static AXRClientEventDispatcher _eventDispatcher;
 
-        public delegate void OnMessageReceiveHandler(AXRClientMessage message);
-        public static event OnMessageReceiveHandler OnMessageReceived;
+        internal static bool configured => _instance?._configured ?? false;
+        internal static bool automaticallyPauseWhenUserNotPresent => (Application.platform != RuntimePlatform.WindowsEditor && 
+                                                                      Application.platform != RuntimePlatform.WindowsPlayer) ||
+                                                                     Application.runInBackground == false;
+
+        internal delegate void OnMessageReceiveHandler(AXRClientMessage message);
+        internal static event OnMessageReceiveHandler OnMessageReceived;
 
         public static AXRClientInputManager inputManager { get; private set; }
-        public static bool configured => _instance?._configured ?? false;
         public static AXRClientState state => _instance?._stateMachine?.state ?? AXRClientState.Error;
         public static bool connected => state == AXRClientState.Linked ||
                                         state == AXRClientState.RequestingPlay || 
                                         state == AXRClientState.Playing;
-        public static bool automaticallyPauseWhenUserNotPresent => (Application.platform != RuntimePlatform.WindowsEditor && 
-                                                                    Application.platform != RuntimePlatform.WindowsPlayer) ||
-                                                                   Application.runInBackground == false;
         public static string lastLinkageAddress => _instance?._lastLinkageAddress;
 
         public static bool volumetric => AXRClientPlugin.IsVolumetric();
         public static bool transparent => AXRClientPlugin.IsTransparent();
+
+        public static void LoadOnce(AXRProfileBase profile, AXRCameraBase camera) {
+            if (_instance != null) { return; }
+
+            AXRClientPlugin.SetProfile(JsonUtility.ToJson(profile.GetSerializable()));
+
+            var go = new GameObject("AXRClient");
+            go.AddComponent<AXRClient>();
+            Debug.Assert(_instance != null);
+
+            _instance._profile = profile;
+            _instance._camera = camera;
+            if (profile.useSeperateVideoRenderTarget) {
+                _instance._underlayVideoRenderer = new AXRUnderlayVideoRenderer(go, profile, camera);
+            }
+
+            inputManager = go.AddComponent<AXRClientInputManager>();
+        }
 
         public static bool TryParseAddress(string address, out string ipaddr, out int port) {
             ipaddr = null;
@@ -61,24 +78,6 @@ namespace onAirXR.Client {
 
         public static void Configure(Context context) {
             _context = context;
-        }
-
-        public static void LoadOnce(AXRProfileBase profile, AXRCameraBase camera) {
-            if (_instance != null) { return; }
-
-            AXRClientPlugin.SetProfile(JsonUtility.ToJson(profile.GetSerializable()));
-
-            var go = new GameObject("AXRClient");
-            go.AddComponent<AXRClient>();
-            Debug.Assert(_instance != null);
-
-            _instance._profile = profile;
-            _instance._camera = camera;
-            if (profile.useSeperateVideoRenderTarget) {
-                _instance._underlayVideoRenderer = new AXRUnderlayVideoRenderer(go, profile, camera);
-            }
-
-            inputManager = go.AddComponent<AXRClientInputManager>();
         }
 
         public static void StartLinking(float delay = -1f) {
@@ -103,7 +102,7 @@ namespace onAirXR.Client {
             AXRClientPlugin.SetBitrate(minBps, startBps, maxBps);
         }
 
-        public static void RunRenderOnFramebufferTexture(AXRRenderCamera renderCamera, AXRRenderCommand renderCommand, Action<AXRRenderCommand> action) {
+        internal static void RunRenderOnFramebufferTexture(AXRRenderCamera renderCamera, AXRRenderCommand renderCommand, Action<AXRRenderCommand> action) {
             if (_instance == null) { return; }
 
             var framebufferTexture = _instance._underlayVideoRenderer?.texture;
@@ -162,7 +161,7 @@ namespace onAirXR.Client {
                 throw new UnityException("[ERROR] AXRClient.Configure must be called on Awake().");
             }
 
-            var result = AXRClientPlugin.Configure(AudioSettings.outputSampleRate, _profile.hasInput, isOpenglRenderTextureCoord());
+            var result = AXRClientPlugin.Configure(AudioSettings.outputSampleRate, _profile.propHasInput, isOpenglRenderTextureCoord());
             if (result < 0 && result != -4) { return; }
             
             _configured = true;
@@ -171,7 +170,7 @@ namespace onAirXR.Client {
 
         private void Update() {
             _eventDispatcher.DispatchEvent();
-            _stateMachine?.Update(!automaticallyPauseWhenUserNotPresent || _profile.isUserPresent, Time.deltaTime);
+            _stateMachine?.Update(!automaticallyPauseWhenUserNotPresent || _profile.propIsUserPresent, Time.deltaTime);
         }
 
         private void LateUpdate() {
@@ -190,7 +189,7 @@ namespace onAirXR.Client {
 
         private bool isOpenglRenderTextureCoord() {
 #if UNITY_EDITOR
-            return _profile.isOpenglRenderTextureCoordInEditor;
+            return _profile.propIsOpenglRenderTextureCoordInEditor;
 #else
             switch (SystemInfo.graphicsDeviceType) {
                 case GraphicsDeviceType.OpenGL2:

@@ -44,7 +44,7 @@ namespace onAirXR.Client {
             _audioRenderer = createAudioRenderer();
             _headTracker = new AXRHeadTrackerInputDevice(this, anchor, _thisTransform);
 
-            AXRClientPlugin.Load();   
+            AXRClientPlugin.Load();
         }
 
         protected virtual void Start() {
@@ -199,7 +199,7 @@ namespace onAirXR.Client {
 
             public VideoRenderer(AXRCameraBase owner, AXRProfileBase profile) {
                 var go = owner.gameObject;
-                if (profile.useDedicatedRenderCamera) {
+                if (profile.propUseDedicatedRenderCamera) {
                     go = new GameObject("RenderCamera");
                     go.transform.SetParent(owner.transform, false);
                     go.transform.localPosition = Vector3.zero;

@@ -11,7 +11,7 @@ using UnityEngine;
 using onAirXR.Client;
 
 public class AirVRProfile : AXRProfileBase {
-    public override (int width, int height) defaultVideoResolution {
+    protected override (int width, int height) defaultVideoResolution {
         get {
 #if UNITY_EDITOR || UNITY_STANDALONE
             return (2048, 2048);
@@ -23,13 +23,13 @@ public class AirVRProfile : AXRProfileBase {
     }
 
     // NOTE: use 90 fps as upper limit for now
-    public override float defaultVideoFrameRate => Application.isEditor ? 60.0f : Mathf.Min(OVRManager.display?.displayFrequency ?? 60.0f, 90.0f);
-    public override bool stereoscopy => true;
-    public override RenderType renderType => RenderType.DirectOnFrameBufferTexture;
-    public override bool isUserPresent => OVRManager.instance.isUserPresent;
-    public override bool isOpenglRenderTextureCoordInEditor => true;
+    protected override float defaultVideoFrameRate => Application.isEditor ? 60.0f : Mathf.Min(OVRManager.display?.displayFrequency ?? 60.0f, 90.0f);
+    protected override bool stereoscopy => true;
+    protected override RenderType renderType => RenderType.DirectOnFrameBufferTexture;
+    protected override bool isUserPresent => OVRManager.instance.isUserPresent;
+    protected override bool isOpenglRenderTextureCoordInEditor => true;
 
-    public override float[] leftEyeCameraNearPlane {
+    protected override float[] leftEyeCameraNearPlane {
         get {
             try {
                 // workaround : GetEyeRenderDesc returns wrong fullFov due to incorrect AsymmetricFovEnabled value
@@ -56,9 +56,9 @@ public class AirVRProfile : AXRProfileBase {
         }
     }
 
-    public override float ipd => OVRManager.profile.ipd;
+    protected override float ipd => OVRManager.profile.ipd;
 
-    public override int[] leftEyeViewport {
+    protected override int[] leftEyeViewport {
         get {
             if (Application.isEditor) {
                 return new int[] { 0, 0, Display.main.renderingWidth, Display.main.renderingHeight };
@@ -69,10 +69,10 @@ public class AirVRProfile : AXRProfileBase {
         }
     }
 
-    public override int[] rightEyeViewport => leftEyeViewport;
+    protected override int[] rightEyeViewport => leftEyeViewport;
 
     // deprecated
-    public override Vector3 eyeCenterPosition {
+    protected override Vector3 eyeCenterPosition {
         get {
             return new Vector3(0.0f, OVRManager.profile.eyeHeight - OVRManager.profile.neckHeight, OVRManager.profile.eyeDepth);
         }

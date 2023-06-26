@@ -56,7 +56,7 @@ namespace onAirXR.Client {
         internal bool propHasInput => hasInput;
         internal bool propIsUserPresent => isUserPresent;
         internal bool propIsOpenglRenderTextureCoordInEditor => isOpenglRenderTextureCoordInEditor;
-        internal bool propUseDedicatedRenderCamera => false;
+        internal bool propUseDedicatedRenderCamera => useDedicatedRenderCamera;
 
         // for stereoscopic
         protected virtual float[] leftEyeCameraNearPlane => null;

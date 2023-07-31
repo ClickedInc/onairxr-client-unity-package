@@ -16,6 +16,9 @@ using onAirXR.Client;
 public class AirViewCamera : AXRCameraBase {
     private AirViewProfile _profile;
     private ARCameraBackground _cameraBackground;
+    private AirViewSimulatedLeftHandInputDevice _leftHandInputDevice;
+    private AirViewSimulatedRightHandInputDevice _rightHandInputDevice;
+    private AirViewSimulatedControllerInputDevice _controllerInputDevice;
     private AirViewTouchScreenInputDevice _touchScreenInputDevice;
 
     [SerializeField] private AXRAnchorComponent _anchor = null;
@@ -110,6 +113,14 @@ public class AirViewCamera : AXRCameraBase {
     }
 
     protected override void OnPostStart(IAXRAnchor anchor) {
+        _leftHandInputDevice = new AirViewSimulatedLeftHandInputDevice(thisCamera, anchor);
+        _rightHandInputDevice = new AirViewSimulatedRightHandInputDevice(thisCamera, anchor);
+        _controllerInputDevice = new AirViewSimulatedControllerInputDevice();
+
+        AXRClient.inputManager.Register(_leftHandInputDevice);
+        AXRClient.inputManager.Register(_rightHandInputDevice);
+        AXRClient.inputManager.Register(_controllerInputDevice);
+
         if (_sendScreenTouches) {
             _touchScreenInputDevice = new AirViewTouchScreenInputDevice();
 

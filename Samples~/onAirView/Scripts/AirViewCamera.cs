@@ -28,7 +28,15 @@ public class AirViewCamera : AXRCameraBase {
 
     private float defaultAspect => thisCamera.aspect;
 
-    public (int width, int height) viewportSize => (Display.main.renderingWidth, Display.main.renderingHeight);
+    public (int width, int height) viewportSize {
+        get {
+            if (Application.platform == RuntimePlatform.WindowsPlayer) {
+                return (1280, 720);
+            }
+            return (Display.main.renderingWidth, Display.main.renderingHeight);
+        }
+    }
+
     public bool stereoscopic => Application.isEditor && _forceStereoscopicInEditor;
     public string[] videoCodecs => Application.isEditor ? new string[] { _videoCodecInEditor == "H265" ? "H265" : "H264" } : null;
 
@@ -95,7 +103,7 @@ public class AirViewCamera : AXRCameraBase {
 
         base.Awake();
 
-        if (Application.isEditor) {
+        if (Application.isEditor || Application.platform == RuntimePlatform.WindowsPlayer) {
             var playerController = gameObject.GetComponent<AirViewStandardInputPlayerController>();
             if (playerController == null) {
                 gameObject.AddComponent<AirViewStandardInputPlayerController>();

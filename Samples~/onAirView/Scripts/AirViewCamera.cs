@@ -121,8 +121,8 @@ public class AirViewCamera : AXRCameraBase {
     }
 
     protected override void OnPostStart(IAXRAnchor anchor) {
-        _leftHandInputDevice = new AirViewSimulatedLeftHandInputDevice(thisCamera, anchor);
-        _rightHandInputDevice = new AirViewSimulatedRightHandInputDevice(thisCamera, anchor);
+        _leftHandInputDevice = new AirViewSimulatedLeftHandInputDevice(thisCamera, anchor, _profile);
+        _rightHandInputDevice = new AirViewSimulatedRightHandInputDevice(thisCamera, anchor, _profile);
         _controllerInputDevice = new AirViewSimulatedControllerInputDevice();
 
         AXRClient.inputManager.Register(_leftHandInputDevice);

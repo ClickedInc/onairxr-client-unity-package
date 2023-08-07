@@ -9,6 +9,7 @@ using onAirXR.Client;
 public class AirViewSimulatedRightHandInputDevice : AXRTrackedInputDevice {
     private Camera _camera;
     private Transform _cameraTransform;
+    private AirViewProfile _profile;
 
 #if UNITY_EDITOR || UNITY_STANDALONE
     public AXRDeviceStatus currentStatus => AXRDeviceStatus.Ready;
@@ -27,7 +28,16 @@ public class AirViewSimulatedRightHandInputDevice : AXRTrackedInputDevice {
 #else
             var touchPos = getActiveTouch(0).position;
 #endif
-            var worldPos = _camera.ScreenToWorldPoint(new Vector3(touchPos.x.ReadValue(), touchPos.y.ReadValue(), _camera.nearClipPlane));
+            var projection = _profile.GetCameraProjection();
+            var scaledTouchPos = new Vector2(
+                touchPos.x.ReadValue() / Display.main.renderingWidth,
+                touchPos.y.ReadValue() / Display.main.renderingHeight
+            );
+
+            var cameraLocalPos = new Vector3((projection[0] * (1 - scaledTouchPos.x) + projection[2] * scaledTouchPos.x) * _camera.nearClipPlane,
+                                             (projection[3] * (1 - scaledTouchPos.y) + projection[1] * scaledTouchPos.y) * _camera.nearClipPlane,
+                                             _camera.nearClipPlane);
+            var worldPos = _cameraTransform.localToWorldMatrix.MultiplyPoint(cameraLocalPos);
 
             var worldToAnchor = anchor?.worldToAnchorMatrix ?? Matrix4x4.identity;
             return new Pose(
@@ -37,9 +47,10 @@ public class AirViewSimulatedRightHandInputDevice : AXRTrackedInputDevice {
         }
     }
 
-    public AirViewSimulatedRightHandInputDevice(Camera camera, IAXRAnchor anchor) : base(anchor) {
+    public AirViewSimulatedRightHandInputDevice(Camera camera, IAXRAnchor anchor, AirViewProfile profile) : base(anchor) {
         _camera = camera;
         _cameraTransform = camera.transform;
+        _profile = profile;
     }
 
     public override byte id => (byte)AXRInputDeviceID.RightHandTracker;

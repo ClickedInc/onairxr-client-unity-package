@@ -13,7 +13,8 @@ using onAirXR.Client;
 
 public class AirViewProfile : AXRProfileBase {
     private AirViewCamera _owner;
-    private float[] _cameraProjection;
+    private float[] _explicitCameraProjection;
+    private float[] _implicitCameraProjection;
 
     public AirViewProfile(AirViewCamera owner) {
         _owner = owner;
@@ -41,7 +42,14 @@ public class AirViewProfile : AXRProfileBase {
     protected override string[] supportedVideoCodecs => _owner.videoCodecs ?? base.supportedVideoCodecs;
     protected override bool useDedicatedRenderCamera => Application.isEditor == false && Application.platform == RuntimePlatform.IPhonePlayer;
 
-    protected override float[] cameraProjection => _cameraProjection ?? _owner.defaultProjection;
+    protected override float[] cameraProjection {
+        get {
+            if (_explicitCameraProjection != null) { return _explicitCameraProjection; }
+
+            _implicitCameraProjection = _owner.defaultProjection;
+            return _implicitCameraProjection;
+        }
+    }
 
     protected override int[] renderViewport {
         get {
@@ -55,191 +63,19 @@ public class AirViewProfile : AXRProfileBase {
     protected override int[] leftEyeViewport => renderViewport;
     protected override int[] rightEyeViewport => renderViewport;
 
+    public float[] GetCameraProjection() {
+        if (_explicitCameraProjection != null) { return _explicitCameraProjection; }
+        else if (_implicitCameraProjection != null) { return _implicitCameraProjection; }
+
+        return cameraProjection;
+    }
+
     public void SetCameraProjection(float[] projection) {
         if (projection != null && projection.Length != 4) {
             Debug.LogError("[ERROR] camera projection must be an array of 4 floats.");
             return;
         }
 
-        _cameraProjection = projection;
+        _explicitCameraProjection = projection;
     }
 }
-
-/* [Serializable]
-public class AirViewProfile {
-    public enum ProfilerMask : int {
-        Frame = 0x01,
-        Report = 0x02
-    }
-
-    public enum VideoBitrate {
-        Low,
-        Normal,
-        High,
-        Best
-    }
-
-    private AirViewCamera _owner;
-    private float[] _cameraProjection;
-
-#pragma warning disable CS0414
-    [SerializeField] private bool Stereoscopy;
-
-    [SerializeField] private string[] SupportedVideoCodecs;
-    [SerializeField] private string[] SupportedAudioCodecs;
-    [SerializeField] private int VideoWidth;
-    [SerializeField] private int VideoHeight;
-    [SerializeField] private float[] VideoScale;
-
-    [SerializeField] private string UserID;
-    [SerializeField] private string TempPath;
-    [SerializeField] private int VideoMinBitrate;
-    [SerializeField] private int VideoStartBitrate;
-    [SerializeField] private int VideoMaxBitrate;
-    [SerializeField] private float VideoFrameRate;
-
-    [SerializeField] private float[] CameraProjection;
-    [SerializeField] private int[] RenderViewport;
-
-    [SerializeField] private float IPD;
-    [SerializeField] private int[] LeftEyeViewport;
-    [SerializeField] private int[] RightEyeViewport;
-    [SerializeField] private Vector3 EyeCenterPosition;
-#pragma warning restore CS0414
-
-    public AirViewProfile(AirViewCamera owner, VideoBitrate bitrate) {
-        _owner = owner;
-
-        switch (bitrate) {
-            case VideoBitrate.Low:
-                videoMinBitrate = 4000000;
-                videoStartBitrate = 5000000;
-                videoMaxBitrate = 6000000;
-                break;
-            case VideoBitrate.Normal:
-                videoMinBitrate = 4000000;
-                videoStartBitrate = 8000000;
-                videoMaxBitrate = 12000000;
-                break;
-            case VideoBitrate.High:
-                videoMinBitrate = 6000000;
-                videoStartBitrate = 12000000;
-                videoMaxBitrate = 24000000;
-                break;
-            case VideoBitrate.Best:
-                videoMinBitrate = 8000000;
-                videoStartBitrate = 16000000;
-                videoMaxBitrate = 32000000;
-                break;
-            default:
-                break;
-        }
-
-        IPD = 0.006f;
-        LeftEyeViewport = new int[] { 0, 0, 1, 1 };
-        RightEyeViewport = new int[] { 0, 0, 1, 1 };
-
-        TempPath = Application.persistentDataPath;
-    }
-
-    private (int width, int height) defaultVideoResolution => _owner.viewportSize;
-    private float defaultVideoFrameRate => AXRClientPlugin.GetOptimisticVideoFrameRate();
-    private string[] defaultVideoCodecs => _owner.videoCodecs ?? AXRClientPlugin.GetSupportedVideoCodecs();
-    private string[] defaultAudioCodecs => AXRClientPlugin.GetSupportedAudioCodecs();
-    private float[] videoScale => new float[] { 1.0f, 1.0f };
-    public bool stereoscopic => _owner.stereoscopic;
-
-    public int[] renderViewport {
-        get {
-            var size = _owner.viewportSize;
-            return new int[] { 0, 0, size.width, size.height };
-        }
-    }
-
-    public string userID {
-        get { return UserID; }
-        set { UserID = value; }
-    }
-
-    public (int width, int height) videoResolution {
-        get { return (VideoWidth, VideoHeight); }
-        set {
-            VideoWidth = value.width;
-            VideoHeight = value.height;
-        }
-    }
-
-    public int videoMinBitrate {
-        get { return VideoMinBitrate; }
-        set { VideoMinBitrate = value; }
-    }
-
-    public int videoStartBitrate {
-        get { return VideoStartBitrate; }
-        set { VideoStartBitrate = value; }
-    }
-
-    public int videoMaxBitrate {
-        get { return VideoMaxBitrate; }
-        set { VideoMaxBitrate = value; }
-    }
-
-    public float videoFrameRate {
-        get { return VideoFrameRate; }
-        set { VideoFrameRate = value; }
-    }
-
-    public string[] videoCodecs {
-        get { return SupportedVideoCodecs; }
-        set { SupportedVideoCodecs = value; }
-    }
-
-    public string[] audioCodecs {
-        get { return SupportedAudioCodecs; }
-        set { SupportedAudioCodecs = value; }
-    }
-
-    public float[] cameraProjection {
-        get {
-            return _cameraProjection ?? _owner.defaultProjection;
-        }
-        set {
-            if (value != null && value.Length != 4) {
-                Debug.LogError("[ERROR] camera projection must be an array of 4 floats.");
-                return;
-            }
-
-            _cameraProjection = value;
-        }
-    } 
-
-    public virtual string Serialize() {
-        update();
-
-        return JsonUtility.ToJson(this);
-    }
-
-    private void update() {
-        Stereoscopy = stereoscopic;
-        VideoScale = videoScale;
-        RenderViewport = renderViewport;
-
-        if (VideoWidth <= 0 || VideoHeight <= 0) {
-            var res = defaultVideoResolution;
-            VideoWidth = res.width;
-            VideoHeight = res.height;
-        }
-        if (VideoFrameRate <= 0) {
-            VideoFrameRate = defaultVideoFrameRate;
-        }
-        if (SupportedVideoCodecs == null || SupportedVideoCodecs.Length == 0) {
-            SupportedVideoCodecs = defaultVideoCodecs;
-        }
-        if (SupportedAudioCodecs == null || SupportedAudioCodecs.Length == 0) {
-            SupportedAudioCodecs = defaultAudioCodecs;
-        }
-
-        CameraProjection = cameraProjection;
-    }
-}
- */

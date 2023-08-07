@@ -1,10 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using onAirXR.Client;
 
 public class AirViewSimulatedControllerInputDevice : AXRInputSender {
+    private const int DelayFramesToPress = 2;
+
+    private int _remainingFramesToRIndexTrigger;
+    private int _remainingFramesToLIndexTrigger;
+
     public override byte id => (byte)AXRInputDeviceID.Controller;
 
     public override void PendInputsPerFrame(AXRInputStream inputStream) {
@@ -15,11 +21,27 @@ public class AirViewSimulatedControllerInputDevice : AXRInputSender {
         inputStream.PendAxis(this, (byte)AXRControllerControl.AxisRIndexTrigger, rIndexTrigger ? 1.0f : 0.0f);
         inputStream.PendAxis(this, (byte)AXRControllerControl.AxisRHandTrigger, rHandTrigger ? 1.0f : 0.0f);
 #else
-        var rIndexTrigger = Touchscreen.current.touches.Count > 0 ? Touchscreen.current.touches[0].isPressed : false;
-        var lIndexTrigger = Touchscreen.current.touches.Count > 1 ? Touchscreen.current.touches[1].isPressed : false;
+        var activeTouches = Touchscreen.current.touches.Where((touch) => touch.press.ReadValue() > 0).ToArray();
 
-        inputStream.PendAxis(this, (byte)AXRControllerControl.AxisRIndexTrigger, rIndexTrigger ? 1.0f : 0.0f);
-        inputStream.PendAxis(this, (byte)AXRControllerControl.AxisLIndexTrigger, lIndexTrigger ? 1.0f : 0.0f);
+        var primaryPress = activeTouches.Length > 0 ? activeTouches[0].press.ReadValue() > 0 : false;
+        var secondaryPress = activeTouches.Length > 1 ? activeTouches[1].press.ReadValue() > 0 : false;
+
+        if (primaryPress) {
+            _remainingFramesToRIndexTrigger = _remainingFramesToRIndexTrigger >= 0 ? _remainingFramesToRIndexTrigger - 1 : -1;
+        }
+        else {
+            _remainingFramesToRIndexTrigger = DelayFramesToPress;
+        }
+
+        if (secondaryPress) {
+            _remainingFramesToLIndexTrigger = _remainingFramesToLIndexTrigger >= 0 ? _remainingFramesToLIndexTrigger - 1 : -1;
+        }
+        else {
+            _remainingFramesToLIndexTrigger = DelayFramesToPress;
+        }
+
+        inputStream.PendAxis(this, (byte)AXRControllerControl.AxisRIndexTrigger, _remainingFramesToRIndexTrigger < 0 ? 1.0f : 0.0f);
+        inputStream.PendAxis(this, (byte)AXRControllerControl.AxisLIndexTrigger, _remainingFramesToLIndexTrigger < 0 ? 1.0f : 0.0f);
 #endif
     }
 }

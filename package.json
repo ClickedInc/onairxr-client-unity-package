@@ -1,6 +1,6 @@
 {
     "name": "com.onairxr.client",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "displayName": "onAirXR Client",
     "description": "onAirXR™is a high-speed streaming solution for game engines that supports VR and AR multi-platform streaming.",
     "unity": "2021.3",
@@ -16,8 +16,8 @@
     ],
     "dependencies": {},
     "documentationUrl": "https://clickedcorp.notion.site/onAirXR-Client-User-Guide-0e69a2e424524cc2b6bf9d280447796f?pvs=4",
-    "changelogUrl": "https://clickedcorp.notion.site/onAirXR-Client-User-Guide-0e69a2e424524cc2b6bf9d280447796f?pvs=4",
-    "licensesUrl": "https://clickedcorp.notion.site/onAirXR-Client-User-Guide-0e69a2e424524cc2b6bf9d280447796f?pvs=4",
+    "changelogUrl": "https://github.com/ClickedInc/onairxr-client-unity-package/releases",
+    "licensesUrl": "https://github.com/ClickedInc/onairxr-client-unity-package/blob/main/LICENSE",
     "samples": [{
         "displayName": "onAirVR",
         "description": "",

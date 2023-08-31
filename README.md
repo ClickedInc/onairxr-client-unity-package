@@ -1,4 +1,4 @@
-# onAirXR Client for Unity ![current release](https://img.shields.io/github/v/release/clickedinc/onairxr-client-unity-package?display_name=tag&include_prereleases) ![os](https://img.shields.io/badge/os-Android-green)
+# onAirXR Client for Unity ![current release](https://img.shields.io/github/v/release/clickedinc/onairxr-client-unity-package?display_name=tag&include_prereleases) ![os](https://img.shields.io/badge/os-Android%20%7C%20iOS-green)
 
 onAirXR&#8482;is a fast and efficient streaming solution designed for game engines. It readily supports streaming across various VR and AR platforms.
 

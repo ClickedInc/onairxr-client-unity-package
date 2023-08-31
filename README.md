@@ -19,13 +19,13 @@ This Unity package is intended for client app development. The plugin needed for
 ## Install
 
 To install onAirXR Unity XR Plugin, just add the following git URL into Unity Package Manager.
-- [https://github.com/ClickedInc/onairxr-client-unity-package.git#3.1.0](https://github.com/ClickedInc/onairxr-client-unity-package/releases/tag/3.1.0)
+- [https://github.com/ClickedInc/onairxr-client-unity-package.git#3.1.1](https://github.com/ClickedInc/onairxr-client-unity-package/releases/tag/3.1.1)
 
 ## Download the client app
 
 You don't need to create your own. Feel free to use the client app we've prepared for you.
 
-[Download the latest version from here.](https://github.com/ClickedInc/onairxr-client-unity-package/releases/tag/3.1.0)
+[Download the latest version from here.](https://github.com/ClickedInc/onairxr-client-unity-package/releases/tag/3.1.1)
 
 ## User Guide
 You can see the user guide at the link below.<br>

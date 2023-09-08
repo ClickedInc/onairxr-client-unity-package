@@ -126,16 +126,24 @@ namespace onAirXR.Client {
             if (tinyOpaqueObject != null) { return; }
 
             var prefab = Resources.Load<GameObject>("AXRTinyOpaqueObject");
-            if (prefab == null) { return; }
+            if (prefab == null) { 
+                Debug.LogWarning("[onairxr] AXRTinyOpaqueObject prefab is not found. Please make sure that the prefab exists in Resources folder.");
+                return; 
+            }
 
             tinyOpaqueObject = Instantiate(prefab, camera.transform);
+
             var frustum = camera.stereoEnabled && camera.stereoTargetEye == StereoTargetEyeMask.Both ? 
                 camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left).decomposeProjection : 
                 camera.projectionMatrix.decomposeProjection;
 
-            var y = frustum.bottom / frustum.zNear * frustum.zFar;
-            tinyOpaqueObject.transform.localPosition = new Vector3(0, y, -frustum.zFar);
+            var near = Mathf.Abs(frustum.zNear);
+            var far = Mathf.Abs(frustum.zFar);
+            var y = frustum.bottom / near * far;
+            
+            tinyOpaqueObject.transform.localPosition = new Vector3(0, y, far);
             tinyOpaqueObject.transform.localRotation = Quaternion.identity;
+            tinyOpaqueObject.transform.localScale = Vector3.one * 0.05f * far / 100.0f; // 5cm at 100m
         }
 
         private void destroyTinyOpaqueObject() {

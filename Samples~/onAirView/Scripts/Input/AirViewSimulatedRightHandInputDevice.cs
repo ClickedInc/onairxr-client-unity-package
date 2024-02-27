@@ -12,6 +12,8 @@ public class AirViewSimulatedRightHandInputDevice : AXRTrackedInputDevice {
     private AirViewProfile _profile;
 
 #if UNITY_EDITOR || UNITY_STANDALONE
+    private Vector2 _lastTouchPos;
+
     public AXRDeviceStatus currentStatus => AXRDeviceStatus.Ready;
 #else
     private int activeTouchCount => Touchscreen.current.touches.Where((touch) => touch.press.ReadValue() > 0).Count();
@@ -24,14 +26,21 @@ public class AirViewSimulatedRightHandInputDevice : AXRTrackedInputDevice {
             if (currentStatus != AXRDeviceStatus.Ready) { return Pose.identity; }
 
 #if UNITY_EDITOR || UNITY_STANDALONE
-            var touchPos = Mouse.current.position;
+            var touchPos = _lastTouchPos;
+
+            if (Application.isFocused) {
+                var pos = Mouse.current.position;
+                touchPos = new Vector2(pos.x.ReadValue(), pos.y.ReadValue());
+                _lastTouchPos = touchPos;
+            }
 #else
-            var touchPos = getActiveTouch(0).position;
+            var pos = getActiveTouch(0).position;
+            var touchPos = new Vector2(pos.x.ReadValue(), pos.y.ReadValue());
 #endif
             var projection = _profile.GetCameraProjection();
             var scaledTouchPos = new Vector2(
-                touchPos.x.ReadValue() / Display.main.renderingWidth,
-                touchPos.y.ReadValue() / Display.main.renderingHeight
+                touchPos.x / Display.main.renderingWidth,
+                touchPos.y / Display.main.renderingHeight
             );
 
             var cameraLocalPos = new Vector3((projection[0] * (1 - scaledTouchPos.x) + projection[2] * scaledTouchPos.x) * _camera.nearClipPlane,

@@ -403,8 +403,10 @@ namespace onAirXR.Client {
 
                 var eye = eyeIndex == 1 ? Camera.StereoscopicEye.Right : Camera.StereoscopicEye.Left;
                 var worldToAnchor = anchor?.worldToAnchorMatrix ?? Matrix4x4.identity;
-                var anchorToView = camera.GetStereoViewMatrix(eye) * worldToAnchor.inverse;
-                var projection = GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true);
+                var viewMatrix = camera.stereoEnabled ? camera.GetStereoViewMatrix(eye) : camera.transform.worldToLocalMatrix;
+                var projMatrix = camera.stereoEnabled ? camera.GetStereoProjectionMatrix(eye) : camera.projectionMatrix;
+                var anchorToView = viewMatrix * worldToAnchor.inverse;
+                var projection = GL.GetGPUProjectionMatrix(projMatrix, true);
                 
                 writeMatrixToFloatArray(anchorToView, ref anchorViewMatrix);
                 writeMatrixToFloatArray(projection, ref projectionMatrix);

@@ -32,6 +32,7 @@ namespace onAirXR.Client {
             AXRPlatform platform { get; }
             string address { get; }
             bool autoPlay { get; }
+            bool userPresent { get; }
 
             float EvalNextLinkageRequestDelay(AXRLinkageRequestCase reqcase);
             void RequestGetLinkage(string ipaddr, int port);
@@ -188,6 +189,8 @@ namespace onAirXR.Client {
         }  
 
         private class StateWaitingForNextLinkageRequest : State {
+            private const float DelayToRequestWhenUserAbsent = 5.5f;
+
             public float remainingToRequest { private get; set; }
             public override AXRClientState type => AXRClientState.WaitingForNextLinkageRequest;
 
@@ -198,6 +201,11 @@ namespace onAirXR.Client {
             }
 
             public override void Update(float deltaTime) {
+                if (context.userPresent == false) {
+                    remainingToRequest = DelayToRequestWhenUserAbsent;
+                    return;
+                }
+
                 remainingToRequest -= deltaTime;
                 if (remainingToRequest > 0) { return; }
 

@@ -15,6 +15,7 @@ namespace onAirXR.Client {
             AXRPlatform platform { get; }
             bool autoPlay { get; }
             string address { get; }
+            bool userPresent { get; }
 
             void OnPreRequestLink(AXRProfileBase profile);
             void OnLinked();
@@ -267,6 +268,7 @@ namespace onAirXR.Client {
         AXRPlatform AXRClientStateMachine.Context.platform => _context.platform;
         string AXRClientStateMachine.Context.address => _context.address;
         bool AXRClientStateMachine.Context.autoPlay => _context.autoPlay;
+        bool AXRClientStateMachine.Context.userPresent => _context.userPresent;
 
         float AXRClientStateMachine.Context.EvalNextLinkageRequestDelay(AXRLinkageRequestCase reqcase) {
             switch (reqcase) {
